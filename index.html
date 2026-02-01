@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRADING JOURNAL | Zeron Finance</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root { 
+            --bg: #050505; 
+            --card: #0f0f0f; 
+            --border: #262626; 
+            --accent: #3b82f6; 
+            --accent-dim: rgba(59, 130, 246, 0.1);
+            --text-main: #e5e5e5;
+            --text-dim: #888;
+            --buy: #22c55e;
+            --sell: #ef4444;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            background-image: radial-gradient(circle at 50% 0%, var(--accent-dim) 0%, transparent 60%);
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            transition: background 0.3s ease;
+        }
+
+        /* SIDEBAR TRANSITION */
+        #main-sidebar { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #main-sidebar.collapsed { margin-left: -18rem; }
+
+        /* SCROLLBAR */
+        .custom-scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* UI ELEMENTS */
+        .btn-accent { background-color: var(--accent); color: #000; font-weight: bold; transition: 0.2s; }
+        .btn-accent:hover { opacity: 0.9; transform: translateY(-1px); }
+        .text-accent { color: var(--accent); }
+        .border-accent { border-color: var(--accent); }
+        
+        .nav-item.active { background: #1a1a1a; color: white; border-left: 3px solid var(--accent); }
+        .nav-item:hover { background: #111; color: white; }
+
+        .input-dark { background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 4px; width: 100%; outline: none; font-size: 13px; transition: 0.2s; }
+        .input-dark:focus { border-color: var(--accent); }
+        
+        .gemini-input { background: #0a0a0a; border: 1px solid var(--border); color: #ccc; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; padding: 15px; border-radius: 6px; width: 100%; min-height: 120px; resize: vertical; outline: none; white-space: pre-wrap; }
+        .gemini-input:focus { border-color: var(--accent); }
+
+        .universal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card-header { background: #111; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: 20px; background: #080808; color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-wrap; border-left: 2px solid #222; }
+
+        .journal-grid { display: grid; grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 0.5fr 0.5fr; width: 100%; align-items: center; gap: 10px; }
+        .data-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
+        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #ddd; }
+        
+        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; }
+        .side-opt:hover { color: #ccc; }
+        input[name="t-side"] { display: none; }
+        input[name="t-side"]:checked + .side-opt[for="side-buy"] { background: rgba(34, 197, 94, 0.2); color: var(--buy); border-bottom: 2px solid var(--buy); }
+        input[name="t-side"]:checked + .side-opt[for="side-sell"] { background: rgba(239, 68, 68, 0.2); color: var(--sell); border-bottom: 2px solid var(--sell); }
+
+        .cal-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
+        .cal-header-item { text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; padding: 10px 0; background: #111; border-bottom: 1px solid var(--border); }
+        .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        .cal-cell { background: var(--card); min-height: 100px; padding: 8px; position: relative; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .cal-cell:hover { background: #161616; }
+        .cal-cell.empty { background: #0a0a0a; cursor: default; }
+        .cal-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #555; font-weight: bold; }
+        .cal-pnl { font-size: 11px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
+        .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
+
+        .pfp-box { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
+        .pfp-box img { width: 100%; height: 100%; object-fit: cover; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--card); border: 1px solid var(--border); margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .checklist-item.checked { opacity: 0.5; text-decoration: line-through; border-color: var(--accent); }
+        .tick-box { width: 20px; height: 20px; border: 2px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .checklist-item.checked .tick-box { background: var(--accent); border-color: var(--accent); color: black; font-weight: bold; }
+        .hidden { display: none !important; }
+        
+        .funds-panel { max-height: 500px; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding 0.4s ease; opacity: 1; }
+        .funds-panel.collapsed { max-height: 0; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin: 0 !important; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <aside id="main-sidebar" class="w-72 border-r border-[#262626] flex flex-col h-full shrink-0 relative" style="background-color: var(--card);">
+        <div class="p-5 flex flex-col h-full">
+            <div class="mb-4 shrink-0">
+                <div class="flex items-center justify-between mb-6 mt-12">
+                    <div class="flex items-center gap-3">
+                        <div class="pfp-box btn-accent" onclick="document.getElementById('pfp-input').click()">
+                            <img id="pfp-display" class="hidden">
+                            <span id="pfp-placeholder" class="font-bold text-lg">#</span>
+                        </div>
+                        <input type="file" id="pfp-input" class="hidden" accept="image/*" onchange="uploadPFP()">
+                        <div>
+                            <h1 class="font-bold tracking-widest text-sm text-white">TRADING JOURNAL</h1>
+                            <p class="text-[9px] text-accent tracking-wider font-bold">BY ZERON FINANCE</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white p-1">◀</button>
+                </div>
+                
+                <div id="name-display-area" class="p-3 rounded border border-[#262626] bg-[#050505] group relative mb-4">
+                    <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">TRADER PROFILE</p>
+                    <h2 id="display-name" class="text-sm font-bold text-white truncate">TRADER</h2>
+                    <button onclick="toggleNameEdit()" class="absolute top-3 right-3 text-gray-600 hover:text-white opacity-0 group-hover:opacity-100 transition">✏️</button>
+                </div>
+                <div id="name-edit-area" class="p-3 rounded border border-accent bg-[#050505] hidden mb-4">
+                    <input type="text" id="client-name-input" class="bg-black border border-[#333] text-white text-xs p-1 w-full outline-none uppercase font-bold">
+                    <button onclick="saveName()" class="mt-2 w-full btn-accent text-[10px] py-1 rounded">SAVE</button>
+                </div>
+
+                <div class="border border-[#262626] rounded bg-[#0a0a0a] overflow-hidden">
+                    <button onclick="toggleFunds()" class="w-full p-2 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
+                        <span>💰 FUNDS & CAPITAL</span>
+                        <span id="funds-arrow">▼</span>
+                    </button>
+                    <div id="funds-content" class="funds-panel collapsed p-3 space-y-3">
+                        <div><label class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Start Capital</label><input type="number" id="base-capital-input" onchange="saveFunds()" class="bg-black border border-[#333] text-accent text-sm font-mono font-bold p-1 w-full outline-none" placeholder="0.00"></div>
+                        <div><label class="text-[9px] text-green-700 font-bold uppercase block mb-1">Total Deposits</label><input type="number" id="deposit-input" onchange="saveFunds()" class="bg-black border border-[#333] text-green-500 text-xs font-mono p-1 w-full outline-none" placeholder="0.00"></div>
+                        <div><label class="text-[9px] text-red-700 font-bold uppercase block mb-1">Total Withdrawals</label><input type="number" id="withdraw-input" onchange="saveFunds()" class="bg-black border border-[#333] text-red-500 text-xs font-mono p-1 w-full outline-none" placeholder="0.00"></div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 custom-scroll space-y-1 mb-2 pr-1 min-h-0">
+                <div onclick="nav('home')" id="nav-home" class="nav-item active p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📅 Calendar</div>
+                <div onclick="nav('journal')" id="nav-journal" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📓 Daily Ledger</div>
+                <div onclick="nav('rules')" id="nav-rules" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">✅ Rules Checklist</div>
+                <div onclick="nav('notepad')" id="nav-notepad" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📝 Quick Notes</div>
+                <div onclick="nav('strategy')" id="nav-strategy" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">⚔️ Strategy Files</div>
+                <div onclick="nav('mirror')" id="nav-mirror" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">🪞 Analytics & PDF</div>
+            </nav>
+
+            <div class="mt-auto pt-4 border-t border-[#262626] shrink-0">
+                <label class="text-[10px] text-gray-500 font-bold uppercase mb-2 block">Visual Theme</label>
+                <select id="theme-selector" onchange="changeTheme(this.value)" class="w-full bg-[#050505] text-xs text-gray-300 border border-[#333] rounded p-2 outline-none">
+                    <option value="blue">🔵 Zeron Blue (Default)</option>
+                    <option value="gold">🟡 Goldman Luxury</option>
+                    <option value="orange">🟠 Bloomberg Terminal</option>
+                    <option value="green">🟢 Matrix Quant</option>
+                    <option value="purple">🟣 Royal Futures</option>
+                </select>
+                <button onclick="resetAllData()" class="text-[10px] text-red-900 hover:text-red-500 w-full text-left mt-4 py-2">⚠️ FACTORY RESET</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8 relative">
+        <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-50 text-gray-400 hover:text-white bg-[#111] border border-[#333] p-2 rounded shadow-lg">☰</button>
+
+        <section id="page-home">
+            <div class="flex justify-between items-center mb-8 pl-12">
+                <h2 class="text-2xl font-bold text-white">Performance Calendar</h2>
+                <div class="flex items-center gap-2 bg-[#0a0a0a] p-1 rounded border border-[#262626]">
+                    <button onclick="changeMonth(-1)" class="px-3 py-1 hover:bg-[#1a1a1a] rounded text-gray-400 font-bold">◀</button>
+                    <span id="cal-month-display" class="font-mono font-bold w-28 text-center text-accent text-sm">JAN 2026</span>
+                    <button onclick="changeMonth(1)" class="px-3 py-1 hover:bg-[#1a1a1a] rounded text-gray-400 font-bold">▶</button>
+                </div>
+            </div>
+            <div class="cal-grid-header">
+                <div class="cal-header-item">Sunday</div><div class="cal-header-item">Monday</div><div class="cal-header-item">Tuesday</div><div class="cal-header-item">Wednesday</div><div class="cal-header-item">Thursday</div><div class="cal-header-item">Friday</div><div class="cal-header-item">Saturday</div>
+            </div>
+            <div id="calendar-grid" class="cal-grid-body"></div>
+        </section>
+
+        <section id="page-journal" class="hidden pb-24">
+            <div class="flex justify-between items-end mb-6 pl-12">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Daily Ledger</h2>
+                    <p class="text-xs text-gray-500 mt-1 font-mono">DATE: <span id="india-date-display" class="text-accent font-bold">--/--/----</span></p>
+                </div>
+                <input type="date" id="active-date" class="bg-[#0a0a0a] border border-[#222] text-white p-2 rounded cursor-pointer text-xs" onchange="loadJournalData()">
+            </div>
+
+            <div class="bg-[#111] border border-[#262626] p-3 rounded-lg mb-6 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] text-yellow-500 font-bold uppercase tracking-widest whitespace-nowrap">⚠️ RULES:</span>
+                    <div id="journal-rules-container" class="flex flex-wrap gap-2 overflow-x-auto text-xs text-gray-400"></div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] text-gray-500 font-bold uppercase">EST. ACCT BALANCE</p>
+                    <p id="running-balance-display" class="text-white font-mono font-bold text-lg">₹0.00</p>
+                </div>
+            </div>
+
+            <div id="entry-form-container" class="universal-card p-5">
+                <div class="flex justify-between items-center border-b border-[#262626] pb-3 mb-4">
+                    <h3 class="font-bold text-white text-sm tracking-widest uppercase flex items-center gap-2">
+                        <span class="w-1 h-4 btn-accent rounded-full"></span> 
+                        <span id="form-title">New Trade Entry</span>
+                    </h3>
+                    <div class="flex gap-3">
+                        <button onclick="addNewEntryMode()" class="text-[10px] btn-accent px-2 py-1 rounded">➕ ADD NEW</button>
+                        <button onclick="clearForm()" class="text-[10px] text-gray-600 hover:text-white">CLEAR FORM</button>
+                    </div>
+                </div>
+                <input type="hidden" id="edit-id"> 
+                <div class="grid grid-cols-12 gap-4 mb-4">
+                    <div class="col-span-2"><label class="data-label">TIME</label><input type="time" id="t-time" class="input-dark"></div>
+                    <div class="col-span-2"><label class="data-label">SIDE</label>
+                        <div class="side-toggle">
+                            <label><input type="radio" name="t-side" value="BUY" checked><div class="side-opt" for="side-buy">BUY</div></label>
+                            <label><input type="radio" name="t-side" value="SELL"><div class="side-opt" for="side-sell">SELL</div></label>
+                        </div>
+                    </div>
+                    <div class="col-span-4"><label class="data-label">ASSET</label><input type="text" id="t-asset" class="input-dark font-bold uppercase" placeholder="NIFTY"></div>
+                    <div class="col-span-4"><label class="data-label">STRATEGY</label><select id="t-strat" class="input-dark bg-[#080808]"><option value="">Select...</option></select></div>
+                </div>
+                <div class="grid grid-cols-5 gap-4 mb-4 bg-[#050505] p-3 rounded border border-[#262626]">
+                    <div><label class="data-label">QUANTITY</label><input type="text" id="t-size" class="input-dark" placeholder="Qty"></div>
+                    <div><label class="data-label">ENTRY PRICE</label><input type="number" id="t-entry" class="input-dark text-blue-400"></div>
+                    <div><label class="data-label">STOP LOSS</label><input type="number" id="t-sl" class="input-dark text-red-400"></div>
+                    <div><label class="data-label">EXIT PRICE</label><input type="number" id="t-exit" class="input-dark text-green-400"></div>
+                    <div><label class="data-label text-white">NET P&L</label><input type="number" id="t-pnl" class="input-dark font-bold text-white text-lg"></div>
+                </div>
+                <div class="mb-4">
+                    <label class="data-label text-accent">TRADING NOTES</label>
+                    <textarea id="t-notes" class="gemini-input" placeholder="Why did you take this trade? logic? mistakes?"></textarea>
+                </div>
+                <button onclick="saveTrade()" class="w-full btn-accent py-3 rounded text-sm uppercase tracking-wide">SAVE ENTRY</button>
+            </div>
+            <div id="journal-feed" class="space-y-6"></div>
+            <div id="empty-msg" class="text-center py-10 text-gray-700 text-xs italic hidden">Page is empty. Start writing.</div>
+            <div class="fixed bottom-0 left-0 right-0 bg-[#050505]/90 border-t border-[#262626] p-4 flex justify-between items-center z-50 px-10 backdrop-blur-md">
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest pl-16">Total P&L (Selected Day)</span>
+                <span id="daily-total-display" class="text-2xl font-bold font-mono text-white">₹0.00</span>
+            </div>
+        </section>
+
+        <section id="page-rules" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Pre-Session Checklist</h2>
+            <div class="universal-card p-5">
+                <h3 class="text-xs text-accent font-bold uppercase tracking-widest mb-4">Add New Rule</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="r-text" placeholder="e.g. Max 2% risk per trade..." class="input-dark">
+                    <button onclick="addRule()" class="btn-accent px-6 rounded font-bold text-sm">ADD</button>
+                </div>
+            </div>
+            <div id="checklist-container"></div>
+        </section>
+
+        <section id="page-notepad" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Quick Notes</h2>
+            <div class="universal-card p-5">
+                <h3 class="font-bold text-sm tracking-widest uppercase mb-4 text-accent">Create New Note</h3>
+                <input type="text" id="note-title" class="input-dark mb-4 font-bold" placeholder="Note Title">
+                <textarea id="note-content" class="gemini-input mb-4" placeholder="Write your analysis here..."></textarea>
+                <button onclick="saveNote()" class="w-full btn-accent py-3 rounded text-sm uppercase font-bold">SAVE NOTE CARD</button>
+            </div>
+            <div id="notes-feed" class="space-y-6"></div>
+        </section>
+
+        <section id="page-strategy" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Strategy Files</h2>
+            <div class="universal-card p-6">
+                <h3 class="font-bold text-accent mb-4 uppercase text-xs tracking-widest">Create New Strategy</h3>
+                <input type="text" id="s-name" placeholder="Strategy Name" class="input-dark mb-4 font-bold text-white">
+                <textarea id="s-notes" class="gemini-input h-40 mb-4" placeholder="Full rules..."></textarea>
+                <button onclick="addStrategy()" class="w-full btn-accent py-3 rounded font-bold text-sm">SAVE STRATEGY FILE</button>
+            </div>
+            <div id="strategy-list" class="space-y-6"></div>
+        </section>
+
+        <section id="page-mirror" class="hidden pb-10">
+            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Analytics</h2>
+            <div class="universal-card p-6 mb-6"><h4 class="text-xs text-gray-500 font-bold mb-4 uppercase">Account Growth</h4><div class="h-64"><canvas id="chart-equity"></canvas></div></div>
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div class="universal-card p-6"><canvas id="chart-pnl"></canvas></div>
+                <div class="universal-card p-6"><canvas id="chart-count"></canvas></div>
+            </div>
+            <div class="universal-card p-6 border-t border-accent">
+                <h3 class="text-lg font-bold text-white mb-4">Export Reports (PDF)</h3>
+                <div class="grid grid-cols-5 gap-4">
+                    <button onclick="generatePDF('day')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Day</button>
+                    <button onclick="generatePDF('week')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Week</button>
+                    <button onclick="generatePDF('month')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Month</button>
+                    <button onclick="generatePDF('year')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Year</button>
+                    <button onclick="generatePDF('all')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">All Time</button>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-8 mb-4">Performance Check</h3>
+                <button onclick="generateStrategyPDF()" class="btn-accent py-3 w-full rounded font-bold text-sm text-black">📊 Download Strategy Performance Report</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="edit-strat-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
+        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[600px] shadow-2xl">
+            <h3 class="font-bold text-white mb-2">Edit File</h3><textarea id="edit-strat-notes" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
+            <div class="flex gap-2"><button onclick="document.getElementById('edit-strat-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveStratEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
+        </div>
+    </div>
+    <div id="edit-note-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
+        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[600px] shadow-2xl">
+            <h3 class="font-bold text-white mb-2">Edit Note</h3><textarea id="edit-note-text" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
+            <div class="flex gap-2"><button onclick="document.getElementById('edit-note-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveNoteEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
+        </div>
+    </div>
+
+    <div id="welcome-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
+        <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] text-center relative">
+            <div class="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-6"><span class="text-3xl">🛡️</span></div>
+            <h2 class="text-2xl font-bold text-white mb-2">Welcome to Trading Journal</h2>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                Special thanks to <strong class="text-accent">Zeron Finance</strong>
+                <br><br>
+                Your data is stored <strong>locally on your device</strong>. We do not see, store, or sell your trading data.
+                <br><br>
+                <span class="text-yellow-500 font-bold">⚠️ IMPORTANT:</span> If you clear your browser cache, you will lose your data. Use the <strong>PDF Export</strong> feature regularly.
+            </p>
+            <button onclick="closeWelcome()" class="w-full btn-accent py-3 rounded font-bold text-sm">I UNDERSTAND - START JOURNALING</button>
+        </div>
+    </div>
+
+    <script>
+        const themes = {
+            blue: { bg: '#050505', card: '#0f0f0f', border: '#262626', accent: '#3b82f6' },
+            gold: { bg: '#080808', card: '#121212', border: '#333333', accent: '#d4af37' },
+            orange: { bg: '#000000', card: '#141414', border: '#333333', accent: '#f97316' },
+            green: { bg: '#020a02', card: '#051105', border: '#1a331a', accent: '#22c55e' },
+            purple: { bg: '#0a050a', card: '#110511', border: '#331a33', accent: '#a855f7' }
+        };
+        function changeTheme(themeName) {
+            const t = themes[themeName]; const root = document.documentElement;
+            root.style.setProperty('--bg', t.bg); root.style.setProperty('--card', t.card); root.style.setProperty('--border', t.border); root.style.setProperty('--accent', t.accent);
+            localStorage.setItem('z_theme', themeName);
+        }
+        function toggleSidebar() { document.getElementById('main-sidebar').classList.toggle('collapsed'); }
+        function toggleFunds() { document.getElementById('funds-content').classList.toggle('collapsed'); document.getElementById('funds-arrow').innerText = document.getElementById('funds-content').classList.contains('collapsed') ? '▼' : '▲'; }
+        
+        const DB = {
+            client: localStorage.getItem('z_client') || "TRADER",
+            capital: parseFloat(localStorage.getItem('z_capital')) || 0,
+            deposit: parseFloat(localStorage.getItem('z_deposit')) || 0,
+            withdraw: parseFloat(localStorage.getItem('z_withdraw')) || 0,
+            pfp: localStorage.getItem('z_pfp') || null,
+            strats: JSON.parse(localStorage.getItem('z_strats')) || [],
+            rules: JSON.parse(localStorage.getItem('z_rules')) || [],
+            trades: JSON.parse(localStorage.getItem('z_trades')) || [],
+            notes: JSON.parse(localStorage.getItem('z_quicknotes')) || [] 
+        };
+        let activeDate = new Date().toISOString().split('T')[0];
+        let calendarDate = new Date();
+        let editingStratIdx = null; let editingNoteIdx = null;
+
+        window.onload = function() {
+            if (!localStorage.getItem('z_visited')) { document.getElementById('welcome-modal').classList.remove('hidden'); }
+            updateNameDisplay(); loadPFP();
+            document.getElementById('base-capital-input').value = DB.capital; document.getElementById('deposit-input').value = DB.deposit; document.getElementById('withdraw-input').value = DB.withdraw;
+            document.getElementById('active-date').value = activeDate;
+            const savedTheme = localStorage.getItem('z_theme') || 'blue'; document.getElementById('theme-selector').value = savedTheme; changeTheme(savedTheme);
+            renderCalendar(); renderRules(); renderNotes(); 
+            document.getElementById('t-time').value = new Date().toTimeString().substring(0,5);
+        };
+        function closeWelcome() { localStorage.setItem('z_visited', 'true'); document.getElementById('welcome-modal').classList.add('hidden'); }
+        function saveAll() {
+            localStorage.setItem('z_client', DB.client); localStorage.setItem('z_capital', DB.capital); localStorage.setItem('z_deposit', DB.deposit); localStorage.setItem('z_withdraw', DB.withdraw); localStorage.setItem('z_pfp', DB.pfp);
+            localStorage.setItem('z_strats', JSON.stringify(DB.strats)); localStorage.setItem('z_rules', JSON.stringify(DB.rules)); localStorage.setItem('z_trades', JSON.stringify(DB.trades)); localStorage.setItem('z_quicknotes', JSON.stringify(DB.notes));
+        }
+        function saveFunds() {
+            DB.capital = parseFloat(document.getElementById('base-capital-input').value)||0; DB.deposit = parseFloat(document.getElementById('deposit-input').value)||0; DB.withdraw = parseFloat(document.getElementById('withdraw-input').value)||0;
+            saveAll(); if(!document.getElementById('page-journal').classList.contains('hidden')) loadJournalData(); if(!document.getElementById('page-mirror').classList.contains('hidden')) renderMirror();
+        }
+        function uploadPFP() { const file = document.getElementById('pfp-input').files[0]; if(!file) return; const r = new FileReader(); r.onloadend = function(){DB.pfp = r.result; saveAll(); loadPFP();}; r.readAsDataURL(file); }
+        function loadPFP() { if(DB.pfp && DB.pfp !== "null") { document.getElementById('pfp-display').src = DB.pfp; document.getElementById('pfp-display').classList.remove('hidden'); document.getElementById('pfp-placeholder').classList.add('hidden'); } }
+        function toggleNameEdit() { document.getElementById('name-display-area').classList.add('hidden'); document.getElementById('name-edit-area').classList.remove('hidden'); document.getElementById('client-name-input').value = DB.client; }
+        function saveName() { if(document.getElementById('client-name-input').value) { DB.client = document.getElementById('client-name-input').value; saveAll(); updateNameDisplay(); } document.getElementById('name-edit-area').classList.add('hidden'); document.getElementById('name-display-area').classList.remove('hidden'); }
+        function updateNameDisplay() { document.getElementById('display-name').innerText = DB.client; }
+        function resetAllData() { if(confirm("DELETE ALL DATA?")) { localStorage.clear(); location.reload(); } }
+        function nav(page) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('page-'+page).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); document.getElementById('nav-'+page).classList.add('active');
+            if(page === 'home') renderCalendar(); if(page === 'journal') loadJournalData(); if(page === 'rules') renderRules(); if(page === 'strategy') renderStrategy(); if(page === 'notepad') renderNotes(); if(page === 'mirror') renderMirror();
+        }
+        function formatIndiaDate(isoDate) { const [y, m, d] = isoDate.split('-'); return `${d}-${m}-${y}`; }
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const y = calendarDate.getFullYear(); const m = calendarDate.getMonth();
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            document.getElementById('cal-month-display').innerText = `${monthNames[m]} ${y}`;
+            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate();
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell empty"></div>`;
+            for(let i=1; i<=daysInMonth; i++) {
+                const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const trades = DB.trades.filter(t => t.date === dStr);
+                let pnl = 0; trades.forEach(t => pnl += t.pnl);
+                let pnlHtml = trades.length ? `<span class="cal-pnl ${pnl>=0?'text-green-400':'text-red-400'}">${pnl>0?'+':''}${pnl}</span>` : '';
+                grid.innerHTML += `<div class="cal-cell" onclick="openDate('${dStr}')"><span class="cal-date">${i}</span>${trades.length?`<div class="cal-trades-dot"></div>`:''}${pnlHtml}</div>`;
+            }
+        }
+        function changeMonth(d) { calendarDate.setMonth(calendarDate.getMonth() + d); renderCalendar(); }
+        function openDate(d) { activeDate = d; document.getElementById('active-date').value = d; nav('journal'); }
+        function loadJournalData() {
+            activeDate = document.getElementById('active-date').value; document.getElementById('india-date-display').innerText = formatIndiaDate(activeDate);
+            const rBox = document.getElementById('journal-rules-container'); rBox.innerHTML = DB.rules.length ? '' : '<span class="text-gray-600 text-xs italic">No rules.</span>';
+            DB.rules.forEach(r => rBox.innerHTML += `<span class="bg-[#111] text-accent text-[10px] px-2 py-1 rounded border border-[#333] whitespace-nowrap">📌 ${r.text}</span>`);
+            const sel = document.getElementById('t-strat'); sel.innerHTML = '<option value="">Select...</option>';
+            DB.strats.forEach(s => sel.innerHTML += `<option value="${s.name}">${s.name}</option>`);
+            let accumulatedPnl = 0; const activeTime = new Date(activeDate).getTime();
+            DB.trades.forEach(t => { if(new Date(t.date).getTime() <= activeTime) accumulatedPnl += t.pnl; });
+            document.getElementById('running-balance-display').innerText = "₹" + (DB.capital + DB.deposit - DB.withdraw + accumulatedPnl).toFixed(2);
+            const feed = document.getElementById('journal-feed'); feed.innerHTML = '';
+            const trades = DB.trades.filter(t => t.date === activeDate);
+            if(trades.length === 0) document.getElementById('empty-msg').classList.remove('hidden'); else document.getElementById('empty-msg').classList.add('hidden');
+            let dailyTotal = 0;
+            trades.forEach((t) => {
+                const idx = DB.trades.indexOf(t); dailyTotal += t.pnl;
+                const pnlColor = t.pnl >= 0 ? 'text-green-400' : 'text-red-400';
+                const sideColor = t.side === 'BUY' ? 'text-green-500' : 'text-red-500';
+                const sideBg = t.side === 'BUY' ? 'bg-green-900/20' : 'bg-red-900/20';
+                feed.innerHTML += `<div class="universal-card"><div class="card-header"><div class="journal-grid"><div><span class="data-label">TIME</span><span class="data-val">${t.time}</span></div><div><span class="data-label">SIDE</span><span class="data-val ${sideColor} font-bold px-2 py-0.5 rounded ${sideBg}">${t.side}</span></div><div><span class="data-label">ASSET</span><span class="text-white font-bold text-sm tracking-wide">${t.asset}</span></div><div><span class="data-label">STRAT</span><span class="text-accent text-xs">${t.strat}</span></div><div><span class="data-label">ENTRY</span><span class="data-val text-blue-200">${t.entry}</span></div><div><span class="data-label">EXIT</span><span class="data-val text-green-200">${t.exit}</span></div><div><span class="data-label">QTY</span><span class="data-val text-gray-400">${t.size}</span></div><div><span class="data-label">P&L</span><span class="font-bold text-lg ${pnlColor}">${t.pnl>=0?'+':''}${t.pnl}</span></div><div class="text-right"><button onclick="editTrade(${idx})" class="text-[10px] text-gray-500 hover:text-white border border-[#222] px-2 py-1 rounded">EDIT</button></div></div></div><div class="card-body">${t.notes}</div></div>`;
+            });
+            document.getElementById('daily-total-display').innerText = "₹" + dailyTotal.toFixed(2);
+            document.getElementById('daily-total-display').className = `text-2xl font-bold font-mono ${dailyTotal >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            if(document.getElementById('form-title').innerText !== "Update Entry") clearForm();
+        }
+        function saveTrade() {
+            const editId = document.getElementById('edit-id').value; const sideEl = document.querySelector('input[name="t-side"]:checked');
+            const t = { date: activeDate, time: document.getElementById('t-time').value, side: sideEl ? sideEl.value : 'BUY', asset: document.getElementById('t-asset').value, size: document.getElementById('t-size').value, strat: document.getElementById('t-strat').value, entry: document.getElementById('t-entry').value, sl: document.getElementById('t-sl').value, exit: document.getElementById('t-exit').value, pnl: parseFloat(document.getElementById('t-pnl').value), notes: document.getElementById('t-notes').value };
+            if(!t.asset || isNaN(t.pnl)) return alert("Asset and P&L required");
+            if (editId) { DB.trades[editId] = t; document.getElementById('edit-id').value = ""; } else { DB.trades.push(t); }
+            saveAll(); clearForm(); loadJournalData();
+        }
+        function editTrade(idx) {
+            const t = DB.trades[idx]; document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('edit-id').value = idx; document.getElementById('form-title').innerText = "Update Entry";
+            document.getElementById('t-time').value = t.time; document.getElementById('t-asset').value = t.asset; document.getElementById('t-size').value = t.size; document.getElementById('t-strat').value = t.strat; document.getElementById('t-entry').value = t.entry; document.getElementById('t-exit').value = t.exit; document.getElementById('t-sl').value = t.sl; document.getElementById('t-pnl').value = t.pnl; document.getElementById('t-notes').value = t.notes;
+            const radios = document.getElementsByName('t-side'); for(let r of radios) { if(r.value === t.side) r.checked = true; }
+        }
+        function addNewEntryMode() { clearForm(); document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' }); }
+        function clearForm() { document.getElementById('edit-id').value = ""; document.getElementById('form-title').innerText = "New Trade Entry"; document.getElementById('t-pnl').value = ''; document.getElementById('t-asset').value = ''; document.getElementById('t-notes').value = ''; document.getElementById('t-entry').value = ''; document.getElementById('t-exit').value = ''; document.getElementById('t-sl').value = ''; document.getElementById('t-time').value = new Date().toTimeString().substring(0,5); }
+        function renderRules() {
+            const list = document.getElementById('checklist-container'); list.innerHTML = '';
+            DB.rules.forEach((r, i) => { list.innerHTML += `<div class="checklist-item ${r.checked?'checked':''}" onclick="toggleRule(${i})"><div class="tick-box">✔</div><span class="text-sm font-bold text-gray-300 flex-1">${r.text}</span><button onclick="event.stopPropagation(); delRule(${i})" class="text-red-500 font-bold px-2">x</button></div>`; });
+        }
+        function addRule() { const r = document.getElementById('r-text').value; if(r) { DB.rules.push({ text: r, checked: false }); saveAll(); document.getElementById('r-text').value=''; renderRules(); } }
+        function delRule(i) { DB.rules.splice(i,1); saveAll(); renderRules(); }
+        function toggleRule(i) { DB.rules[i].checked = !DB.rules[i].checked; saveAll(); renderRules(); }
+        function renderNotes() {
+            const list = document.getElementById('notes-feed'); list.innerHTML = '';
+            DB.notes.slice().reverse().forEach((n) => { const idx = DB.notes.indexOf(n); list.innerHTML += `<div class="universal-card"><div class="card-header"><span class="font-bold text-white text-lg tracking-wide">${n.title}</span><div class="flex gap-2"><button onclick="openNoteEdit(${idx})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button><button onclick="deleteNote(${idx})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button></div></div><div class="card-body">${n.content}</div></div>`; });
+        }
+        function saveNote() { const t = document.getElementById('note-title').value; const c = document.getElementById('note-content').value; if(t) { DB.notes.push({ title: t, content: c }); saveAll(); document.getElementById('note-title').value = ''; document.getElementById('note-content').value = ''; renderNotes(); } }
+        function deleteNote(i) { if(confirm("Delete note?")) { DB.notes.splice(i, 1); saveAll(); renderNotes(); } }
+        function openNoteEdit(i) { editingNoteIdx = i; document.getElementById('edit-note-text').value = DB.notes[i].content; document.getElementById('edit-note-modal').classList.remove('hidden'); }
+        function saveNoteEdit() { DB.notes[editingNoteIdx].content = document.getElementById('edit-note-text').value; saveAll(); document.getElementById('edit-note-modal').classList.add('hidden'); renderNotes(); }
+        function renderStrategy() {
+            const list = document.getElementById('strategy-list'); list.innerHTML = '';
+            DB.strats.forEach((s, i) => { list.innerHTML += `<div class="universal-card"><div class="card-header"><h4 class="font-bold text-white text-lg">${s.name}</h4><div class="flex gap-2"><button onclick="openStratEdit(${i})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button><button onclick="deleteStrategy(${i})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button></div></div><div class="card-body">${s.notes}</div></div>`; });
+        }
+        function addStrategy() { const n = document.getElementById('s-name').value; const no = document.getElementById('s-notes').value; if(n) { DB.strats.push({ name: n, notes: no }); saveAll(); document.getElementById('s-name').value=''; document.getElementById('s-notes').value=''; renderStrategy(); } }
+        function deleteStrategy(i) { if(confirm("Delete strategy?")) { DB.strats.splice(i, 1); saveAll(); renderStrategy(); } }
+        function openStratEdit(i) { editingStratIdx = i; document.getElementById('edit-strat-notes').value = DB.strats[i].notes; document.getElementById('edit-strat-modal').classList.remove('hidden'); }
+        function saveStratEdit() { DB.strats[editingStratIdx].notes = document.getElementById('edit-strat-notes').value; saveAll(); document.getElementById('edit-strat-modal').classList.add('hidden'); renderStrategy(); }
+        function renderMirror() {
+            const ctx1 = document.getElementById('chart-pnl'); const ctx2 = document.getElementById('chart-count'); const ctx3 = document.getElementById('chart-equity');
+            if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy();
+            const sortedTrades = [...DB.trades].sort((a,b) => new Date(a.date) - new Date(b.date));
+            const s = {}; DB.strats.forEach(x => s[x.name]={p:0,c:0});
+            let bal = DB.capital + DB.deposit - DB.withdraw; const eqL = ['Start']; const eqD = [bal]; const daily = {};
+            sortedTrades.forEach(t => { if(!daily[t.date]) daily[t.date] = 0; daily[t.date] += t.pnl; if(s[t.strat]) { s[t.strat].p += t.pnl; s[t.strat].c++; } });
+            Object.keys(daily).sort((a,b)=>new Date(a)-new Date(b)).forEach(d => { bal += daily[d]; eqL.push(d); eqD.push(bal); });
+            const l = Object.keys(s);
+            window.c3 = new Chart(ctx3, { type: 'line', data: { labels: eqL, datasets: [{ label: 'Account Equity', data: eqD, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }] }, options: { scales: { y: { grid: { color: '#222' } } } } });
+            window.c1 = new Chart(ctx1, { type: 'bar', data: { labels: l, datasets: [{ label: 'P&L', data: l.map(k=>s[k].p), backgroundColor: l.map(k=>s[k].p>=0?'#22c55e':'#ef4444') }] }, options: { scales: { y: { grid: { color: '#222' } } } } });
+            window.c2 = new Chart(ctx2, { type: 'doughnut', data: { labels: l, datasets: [{ data: l.map(k=>s[k].c), backgroundColor: ['#3b82f6','#eab308','#ec4899','#8b5cf6'] }] } });
+        }
+        function generatePDF(scope) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            let filtered = DB.trades; let title = "All Time Report";
+            if(scope==='day') { filtered = DB.trades.filter(t=>t.date===activeDate); title=`Daily: ${activeDate}`; }
+            else if(scope==='month') { filtered = DB.trades.filter(t=>t.date.startsWith(activeDate.substring(0,7))); title=`Month: ${activeDate.substring(0,7)}`; }
+            
+            doc.setFontSize(18); doc.text(`Daily Report: ${DB.client}`, 14, 20);
+            doc.setFontSize(10); doc.setTextColor(100); doc.text("Generated by Zeron Finance", 14, 26);
+            
+            let total = 0; let wins = 0; filtered.forEach(t=>{total+=t.pnl; if(t.pnl>0) wins++});
+            doc.text(`Trades: ${filtered.length} | P&L: ${total.toFixed(2)} | Win%: ${(filtered.length?(wins/filtered.length*100):0).toFixed(1)}%`, 14, 35);
+            
+            const body = filtered.map(t=>[t.date, t.time, t.asset, t.side, t.entry, t.exit, t.pnl, t.notes]);
+            doc.autoTable({ startY: 40, head: [['Date','Time','Asset','Side','Entry','Exit','P&L','Notes']], body: body, theme: 'grid', styles: { fontSize: 8 }, headStyles: { fillColor: [30,30,30] } });
+            doc.save(`Zeron_${scope}.pdf`);
+        }
+        function generateStrategyPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(18); doc.text("Strategy Audit", 14, 20); doc.setFontSize(10); doc.text("Generated by Zeron Finance", 14, 26);
+            const stats = {}; DB.trades.forEach(t=>{ const s=t.strat||'None'; if(!stats[s]) stats[s]={c:0,w:0,p:0}; stats[s].c++; stats[s].p+=t.pnl; if(t.pnl>0) stats[s].w++; });
+            const body = Object.keys(stats).map(k=>[k, stats[k].c, `${((stats[k].w/stats[k].c)*100).toFixed(1)}%`, stats[k].p.toFixed(2)]);
+            doc.autoTable({ startY: 35, head: [['Strategy','Count','Win Rate','Net P&L']], body: body, theme: 'striped' });
+            doc.save('StrategyAudit.pdf');
+        }
+    </script>
+</body>
+</html>
