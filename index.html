@@ -42,7 +42,7 @@
             transition: background 0.3s ease;
         }
 
-        /* --- UNIVERSAL SCROLLABLE SIDEBAR (FIX FOR TABLET/MOBILE) --- */
+        /* --- UNIVERSAL SCROLLABLE SIDEBAR --- */
         #main-sidebar {
             background-color: var(--card);
             border-right: 1px solid var(--border);
@@ -51,7 +51,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
             
-            /* FORCE SCROLL Y-AXIS ON ALL DEVICES */
+            /* FORCE SCROLL ON ALL DEVICES */
             height: 100dvh; 
             max-height: 100dvh;
             overflow-y: auto; 
@@ -60,7 +60,7 @@
             scrollbar-color: var(--border) transparent;
         }
 
-        /* DESKTOP (Regular Sidebar) */
+        /* DESKTOP */
         @media (min-width: 769px) {
             #main-sidebar {
                 width: 18rem;
@@ -72,7 +72,7 @@
             #mobile-toggle-btn { display: none !important; }
         }
 
-        /* MOBILE & TABLET PORTRAIT (Slide-Over Drawer) */
+        /* MOBILE & TABLET (DRAWER) */
         @media (max-width: 768px) {
             #main-sidebar {
                 position: fixed;
@@ -81,11 +81,11 @@
                 bottom: 0;
                 width: 85%;
                 max-width: 320px;
-                transform: translateX(-100%); /* Hidden by default */
+                transform: translateX(-100%); 
                 box-shadow: 5px 0 25px rgba(0,0,0,0.8);
             }
             #main-sidebar.active {
-                transform: translateX(0); /* Slide In */
+                transform: translateX(0);
             }
             
             #mobile-backdrop {
@@ -142,7 +142,7 @@
         .card-header { background: #111; padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .card-body { padding: 20px; background: #080808; color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-wrap; border-left: 2px solid #222; }
 
-        /* UTILS - PREMIUM GRID */
+        /* UTILS */
         .journal-grid { display: grid; grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 0.5fr 0.5fr; width: 100%; align-items: center; gap: 10px; }
         @media (max-width: 768px) {
             .journal-grid { grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
@@ -181,7 +181,7 @@
         .checklist-item.checked .tick-box { background: var(--accent); border-color: var(--accent); color: black; font-weight: bold; }
         .hidden { display: none !important; }
         
-        /* TRANSITION FOR FUNDS */
+        /* FUNDS PANEL */
         .funds-panel {
             max-height: 500px;
             overflow: hidden;
@@ -252,7 +252,7 @@
                 <div onclick="nav('mirror')" id="nav-mirror" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">🪞 Analytics & PDF</div>
             </nav>
 
-            <button id="install-btn" onclick="handleInstallClick()" class="w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2 shrink-0">
+            <button id="install-btn" onclick="handleInstallClick()" class="w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2 shrink-0 shadow-lg">
                 📲 INSTALL APP
             </button>
 
@@ -476,17 +476,21 @@
                     <img src="logo.jpg" class="w-full h-full object-cover">
                 </div>
                 <h2 class="text-xl font-bold text-white">INSTALL APP</h2>
-                <p class="text-gray-500 text-xs mt-1">Add to Home Screen for Offline Access</p>
+                <p class="text-gray-500 text-xs mt-1">For Best Experience on iPhone/iPad</p>
             </div>
             
             <div class="space-y-4 text-sm text-gray-300">
                 <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">🍎 iPhone (Safari)</strong>
-                    Tap the <span class="text-blue-400 font-bold">Share</span> button (box with arrow) → Scroll down → Tap <span class="font-bold text-white">'Add to Home Screen'</span>.
+                    <strong class="text-white block mb-1">1. Tap 'Share'</strong>
+                    Tap the <span class="text-blue-400 font-bold">Share Icon</span> (Box with arrow) at the bottom or top of Safari.
                 </div>
                 <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">🤖 Android / PC</strong>
-                    If the popup didn't appear, tap the <span class="text-blue-400 font-bold">3 Dots</span> (browser menu) → Tap <span class="font-bold text-white">'Install App'</span>.
+                    <strong class="text-white block mb-1">2. Add to Home</strong>
+                    Scroll down and tap <span class="font-bold text-white">'Add to Home Screen'</span>.
+                </div>
+                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                    <strong class="text-white block mb-1">3. Confirm</strong>
+                    Tap 'Add' in the top right corner. The app will appear on your screen.
                 </div>
             </div>
             
@@ -495,28 +499,27 @@
     </div>
 
     <script>
-        // --- AGGRESSIVE INSTALL LOGIC ---
+        // --- SMART INSTALL LOGIC (ONE-TAP) ---
         let deferredPrompt;
         
-        // Capture event immediately
+        // 1. Capture event immediately on load
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            console.log("Install prompt captured");
+            // Optionally, we could show the button only here, but we keep it visible for manual guide
         });
 
         function handleInstallClick() {
             if (deferredPrompt) {
-                // FORCE SHOW NATIVE PROMPT
+                // 2. ANDROID/PC: Force System Prompt Immediately
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
+                        deferredPrompt = null; // Clear prompt after use
                     }
-                    deferredPrompt = null;
                 });
             } else {
-                // If native prompt is unavailable (iOS or blocked), show manual instructions
+                // 3. iPHONE/UNSUPPORTED: Show Manual Guide
                 document.getElementById('install-modal').classList.remove('hidden');
             }
         }
