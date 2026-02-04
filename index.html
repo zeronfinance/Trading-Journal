@@ -42,11 +42,17 @@
             transition: background 0.3s ease;
         }
 
-        /* SIDEBAR TRANSITION */
-        #main-sidebar { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* SIDEBAR TRANSITION & SCROLL */
+        #main-sidebar { 
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            /* CEO FIX: Allow sidebar itself to scroll vertically on small screens */
+            overflow-y: auto; 
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
         #main-sidebar.collapsed { margin-left: -18rem; }
 
-        /* SCROLLBAR */
+        /* SCROLLBAR STYLE */
         .custom-scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
@@ -108,8 +114,7 @@
 <body class="flex h-screen">
 
     <aside id="main-sidebar" class="w-72 border-r border-[#262626] flex flex-col h-full shrink-0 relative" style="background-color: var(--card);">
-        <div class="p-5 flex flex-col h-full">
-            <div class="mb-4 shrink-0">
+        <div class="p-5 flex flex-col min-h-full"> <div class="mb-4 shrink-0">
                 <div class="flex items-center justify-between mb-6 mt-12">
                     <div class="flex items-center gap-3">
                         <div class="pfp-box btn-accent" onclick="document.getElementById('pfp-input').click()">
@@ -148,7 +153,7 @@
                 </div>
             </div>
 
-            <nav class="flex-1 custom-scroll space-y-1 mb-2 pr-1 min-h-0">
+            <nav class="shrink-0 space-y-1 mb-2 pr-1">
                 <div onclick="nav('home')" id="nav-home" class="nav-item active p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📅 Calendar</div>
                 <div onclick="nav('journal')" id="nav-journal" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📓 Daily Ledger</div>
                 <div onclick="nav('rules')" id="nav-rules" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">✅ Rules Checklist</div>
@@ -157,11 +162,11 @@
                 <div onclick="nav('mirror')" id="nav-mirror" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">🪞 Analytics & PDF</div>
             </nav>
 
-            <button id="install-btn" onclick="handleInstallClick()" class="w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2">
+            <button id="install-btn" onclick="handleInstallClick()" class="w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2 shrink-0">
                 📲 INSTALL APP
             </button>
 
-            <div class="mt-auto pt-4 border-t border-[#262626] shrink-0">
+            <div class="mt-auto pt-4 border-t border-[#262626] shrink-0 pb-10">
                 <label class="text-[10px] text-gray-500 font-bold uppercase mb-2 block">Visual Theme</label>
                 <select id="theme-selector" onchange="changeTheme(this.value)" class="w-full bg-[#050505] text-xs text-gray-300 border border-[#333] rounded p-2 outline-none">
                     <option value="blue">🔵 Zeron Blue (Default)</option>
