@@ -38,11 +38,11 @@
             background-image: radial-gradient(circle at 50% 0%, var(--accent-dim) 0%, transparent 60%);
             color: var(--text-main); 
             font-family: 'Inter', sans-serif; 
-            overflow: hidden; /* Main window doesn't scroll, inner panels do */
+            overflow: hidden; 
             transition: background 0.3s ease;
         }
 
-        /* --- UNIVERSAL SIDEBAR SCROLL FIX --- */
+        /* --- UNIVERSAL SCROLLABLE SIDEBAR (FIX FOR TABLET/MOBILE) --- */
         #main-sidebar {
             background-color: var(--card);
             border-right: 1px solid var(--border);
@@ -51,8 +51,8 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
             
-            /* FORCE SCROLL ON ALL DEVICES (TABLET/PC/MOBILE) */
-            height: 100dvh; /* Dynamic Height for Mobile Browsers */
+            /* FORCE SCROLL Y-AXIS ON ALL DEVICES */
+            height: 100dvh; 
             max-height: 100dvh;
             overflow-y: auto; 
             overflow-x: hidden;
@@ -104,7 +104,7 @@
             }
         }
 
-        /* CUSTOM SCROLLBAR STYLE */
+        /* SCROLLBAR STYLE */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -485,12 +485,8 @@
                     Tap the <span class="text-blue-400 font-bold">Share</span> button (box with arrow) → Scroll down → Tap <span class="font-bold text-white">'Add to Home Screen'</span>.
                 </div>
                 <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">🤖 Android (Chrome)</strong>
-                    Tap the <span class="text-blue-400 font-bold">3 Dots</span> (top right) → Tap <span class="font-bold text-white">'Add to Home Screen'</span> or 'Install App'.
-                </div>
-                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">💻 PC / Laptop</strong>
-                    Click the <span class="text-blue-400 font-bold">Install Icon (⬇️)</span> in the address bar.
+                    <strong class="text-white block mb-1">🤖 Android / PC</strong>
+                    If the popup didn't appear, tap the <span class="text-blue-400 font-bold">3 Dots</span> (browser menu) → Tap <span class="font-bold text-white">'Install App'</span>.
                 </div>
             </div>
             
@@ -499,18 +495,28 @@
     </div>
 
     <script>
-        // --- SMART INSTALL LOGIC ---
+        // --- AGGRESSIVE INSTALL LOGIC ---
         let deferredPrompt;
+        
+        // Capture event immediately
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            console.log("Install prompt captured");
         });
 
         function handleInstallClick() {
             if (deferredPrompt) {
+                // FORCE SHOW NATIVE PROMPT
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
             } else {
+                // If native prompt is unavailable (iOS or blocked), show manual instructions
                 document.getElementById('install-modal').classList.remove('hidden');
             }
         }
