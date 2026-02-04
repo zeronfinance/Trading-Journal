@@ -42,7 +42,7 @@
             transition: background 0.3s ease;
         }
 
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR (UNIVERSAL SCROLL) --- */
         #main-sidebar {
             background-color: var(--card);
             border-right: 1px solid var(--border);
@@ -138,8 +138,16 @@
         .cal-pnl { font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
         .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
         
-        /* TODAY HIGHLIGHT */
-        .cal-cell.is-today { border: 1px solid var(--accent); box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.2); }
+        /* TODAY HIGHLIGHT (FIXED) */
+        .cal-cell.is-today { 
+            border: 2px solid var(--accent); 
+            box-shadow: inset 0 0 15px var(--accent-dim); 
+            z-index: 10;
+        }
+        .cal-cell.is-today .cal-date {
+            color: var(--accent);
+            font-weight: 800;
+        }
 
         .pfp-box { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
         .pfp-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -424,18 +432,63 @@
         </div>
     </div>
 
+    <div id="install-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
+        <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] relative text-left">
+            <button onclick="document.getElementById('install-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-black rounded-lg flex items-center justify-center mx-auto mb-4 overflow-hidden border border-gray-800">
+                    <img src="logo.jpg" class="w-full h-full object-cover">
+                </div>
+                <h2 class="text-xl font-bold text-white">INSTALL APP</h2>
+                <p class="text-gray-500 text-xs mt-1">For Best Experience on iPhone/iPad</p>
+            </div>
+            <div class="space-y-4 text-sm text-gray-300">
+                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                    <strong class="text-white block mb-1">1. Tap 'Share'</strong>
+                    Tap the <span class="text-blue-400 font-bold">Share Icon</span> (Box with arrow) at the bottom or top of Safari.
+                </div>
+                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                    <strong class="text-white block mb-1">2. Add to Home</strong>
+                    Scroll down and tap <span class="font-bold text-white">'Add to Home Screen'</span>.
+                </div>
+                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                    <strong class="text-white block mb-1">3. Confirm</strong>
+                    Tap 'Add' in the top right corner. The app will appear on your screen.
+                </div>
+            </div>
+            <button onclick="document.getElementById('install-modal').classList.add('hidden')" class="w-full btn-accent py-3 rounded font-bold text-sm mt-6 text-black">GOT IT</button>
+        </div>
+    </div>
+
+    <div id="install-modal-pc" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
+        <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] relative text-left">
+            <button onclick="document.getElementById('install-modal-pc').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-white">INSTALL APP</h2>
+                <p class="text-gray-500 text-xs mt-1">Direct Install Not Available</p>
+            </div>
+            <div class="space-y-4 text-sm text-gray-300">
+                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                    <strong class="text-white block mb-1">How to Install Manually:</strong>
+                    Look for the <span class="font-bold text-white">Install Icon (⬇️)</span> in your browser's address bar (top right).
+                    <br><br>
+                    Or tap the <span class="font-bold text-white">3 Dots Menu</span> -> "Install App".
+                </div>
+            </div>
+            <button onclick="document.getElementById('install-modal-pc').classList.add('hidden')" class="w-full btn-accent py-3 rounded font-bold text-sm mt-6 text-black">GOT IT</button>
+        </div>
+    </div>
+
     <script>
         // --- SMART INSTALL LOGIC (ONE-TAP) ---
         let deferredPrompt;
-        
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
         // 1. CAPTURE THE INSTALL EVENT
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67+ from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // SHOW THE INSTALL BUTTON NOW THAT WE KNOW IT'S POSSIBLE
-            document.getElementById('install-btn').classList.remove('hidden');
+            document.getElementById('install-btn').classList.remove('hidden'); // Show button only when ready
         });
 
         function handleInstallClick() {
@@ -447,16 +500,18 @@
                         console.log('User accepted the install prompt');
                     }
                     deferredPrompt = null;
-                    // Hide button after install
                     document.getElementById('install-btn').classList.add('hidden');
                 });
+            } else if (isIos) {
+                // 3. iPHONE: Show iOS Guide
+                document.getElementById('install-modal').classList.remove('hidden');
             } else {
-                // If button is visible but prompt is gone (rare), or direct check fails
-                alert("App is already installed or check your browser menu to install.");
+                // 4. PC/ANDROID MANUAL: Show PC Guide
+                document.getElementById('install-modal-pc').classList.remove('hidden');
             }
         }
 
-        // --- SERVICE WORKER REGISTRATION (REQUIRED FOR PC INSTALL) ---
+        // --- SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(registration => {
@@ -486,7 +541,7 @@
             localStorage.setItem('z_theme', themeName);
         }
 
-        // --- MOBILE MENU LOGIC (DRAWER) ---
+        // --- MENU LOGIC ---
         function openMobileMenu() {
             document.getElementById('main-sidebar').classList.add('active');
             document.getElementById('mobile-backdrop').classList.add('active');
@@ -618,7 +673,7 @@
 
         function formatIndiaDate(isoDate) { const [y, m, d] = isoDate.split('-'); return `${d}-${m}-${y}`; }
 
-        // --- CALENDAR ---
+        // --- CALENDAR (FIXED HIGHLIGHT) ---
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
@@ -629,7 +684,7 @@
             
             const firstDay = new Date(y, m, 1).getDay();
             const daysInMonth = new Date(y, m + 1, 0).getDate();
-            const today = new Date(); // Actual current date
+            const realToday = new Date();
 
             for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-cell empty"></div>`; }
 
@@ -646,11 +701,14 @@
                 }
                 const dot = count > 0 ? `<div class="cal-trades-dot"></div>` : '';
                 
-                // TODAY HIGHLIGHT CHECK
-                const isToday = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear()) ? 'is-today' : '';
+                // FIXED HIGHLIGHT LOGIC
+                let isTodayClass = '';
+                if (i === realToday.getDate() && m === realToday.getMonth() && y === realToday.getFullYear()) {
+                    isTodayClass = 'is-today';
+                }
 
                 grid.innerHTML += `
-                <div class="cal-cell ${isToday}" onclick="openDate('${dStr}')">
+                <div class="cal-cell ${isTodayClass}" onclick="openDate('${dStr}')">
                     <span class="cal-date">${i}</span>
                     ${dot}
                     ${pnlHtml}
@@ -872,7 +930,7 @@
         function openStratEdit(i) { editingStratIdx = i; document.getElementById('edit-strat-notes').value = DB.strats[i].notes; document.getElementById('edit-strat-modal').classList.remove('hidden'); }
         function saveStratEdit() { DB.strats[editingStratIdx].notes = document.getElementById('edit-strat-notes').value; saveAll(); document.getElementById('edit-strat-modal').classList.add('hidden'); renderStrategy(); }
 
-        // --- MIRROR (ANALYTICS FIX: No Strategy & Single Points) ---
+        // --- MIRROR ---
         let c1, c2, c3;
         function renderMirror() {
             const ctx1 = document.getElementById('chart-pnl'); const ctx2 = document.getElementById('chart-count'); const ctx3 = document.getElementById('chart-equity');
@@ -881,7 +939,6 @@
             const sortedTrades = [...DB.trades].sort((a,b) => new Date(a.date) - new Date(b.date));
             const s = {}; 
             
-            // Auto-detect strategies including "No Strategy"
             sortedTrades.forEach(t => { 
                 const n = t.strat || "No Strategy"; 
                 if(!s[n]) s[n]={p:0,c:0}; 
@@ -899,10 +956,7 @@
             });
 
             const sortedDates = Object.keys(dailyMap).sort((a,b) => new Date(a) - new Date(b));
-            
-            // Seed start
-            eqLabels.push('Start');
-            eqData.push(runningCapital);
+            eqLabels.push('Start'); eqData.push(runningCapital);
 
             sortedDates.forEach(d => {
                 runningCapital += dailyMap[d];
@@ -910,7 +964,6 @@
                 eqData.push(runningCapital);
             });
 
-            // Single point fix
             if(eqData.length === 1) { eqLabels.push('Now'); eqData.push(runningCapital); }
 
             const l = Object.keys(s);
@@ -919,7 +972,7 @@
             c2 = new Chart(ctx2, { type:'doughnut', data:{labels:l, datasets:[{data:l.map(x=>s[x].c), backgroundColor:['#3b82f6','#eab308','#ec4899','#10b981','#8b5cf6']}]} });
         }
 
-        // --- GENERAL PDF REPORT (UPGRADED) ---
+        // --- GENERAL PDF REPORT ---
         function generatePDF(scope) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -985,7 +1038,6 @@
             doc.text(`Deposits: ${DB.deposit.toFixed(2)} | Withdrawals: ${DB.withdraw.toFixed(2)}`, 20, 54);
             doc.text(`Est. Net Balance: ${currentBalance.toFixed(2)}`, 140, 54);
 
-            // UPGRADED PDF COLUMNS - ADDED 'Entry Price' EXPLICITLY
             const tableBody = filteredTrades.map(t => [t.date, t.asset, t.side, t.strat || '-', t.size, t.entry, t.sl, t.exit, t.pnl, t.notes]);
 
             doc.autoTable({
@@ -995,9 +1047,7 @@
                 theme: 'grid',
                 styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' }, 
                 headStyles: { fillColor: [20, 20, 20] },
-                columnStyles: {
-                    9: { cellWidth: 40 } 
-                },
+                columnStyles: { 9: { cellWidth: 40 } },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 8) {
                         const val = parseFloat(data.cell.raw);
