@@ -42,18 +42,66 @@
             transition: background 0.3s ease;
         }
 
-        /* SIDEBAR TRANSITION & SCROLL */
-        #main-sidebar { 
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            /* CEO FIX: Allow sidebar itself to scroll vertically on small screens */
-            overflow-y: auto; 
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
+        /* --- MOBILE SIDEBAR ARCHITECTURE --- */
+        #main-sidebar {
+            background-color: var(--card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
         }
-        #main-sidebar.collapsed { margin-left: -18rem; }
+
+        /* DESKTOP (Regular Sidebar) */
+        @media (min-width: 769px) {
+            #main-sidebar {
+                width: 18rem;
+                height: 100vh;
+                position: relative;
+            }
+            #main-sidebar.collapsed { margin-left: -18rem; }
+            #mobile-overlay { display: none !important; }
+            #mobile-toggle-btn { display: none !important; }
+        }
+
+        /* MOBILE (Slide-Over Drawer) */
+        @media (max-width: 768px) {
+            #main-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 85%; /* Wide drawer */
+                max-width: 320px;
+                height: 100dvh; /* Full dynamic height */
+                transform: translateX(-100%); /* Hidden by default */
+                box-shadow: 5px 0 25px rgba(0,0,0,0.8);
+                overflow-y: auto; /* ENABLE VERTICAL SCROLL INSIDE DRAWER */
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            #main-sidebar.active {
+                transform: translateX(0); /* Slide in */
+            }
+
+            /* Overlay Backdrop */
+            #mobile-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.7);
+                backdrop-filter: blur(3px);
+                z-index: 40;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+            #mobile-overlay.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
 
         /* SCROLLBAR STYLE */
-        .custom-scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         .custom-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -68,22 +116,27 @@
         .nav-item.active { background: #1a1a1a; color: white; border-left: 3px solid var(--accent); }
         .nav-item:hover { background: #111; color: white; }
 
-        .input-dark { background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 4px; width: 100%; outline: none; font-size: 13px; transition: 0.2s; }
+        .input-dark { background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; width: 100%; outline: none; font-size: 14px; transition: 0.2s; }
         .input-dark:focus { border-color: var(--accent); }
         
         .gemini-input { background: #0a0a0a; border: 1px solid var(--border); color: #ccc; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; padding: 15px; border-radius: 6px; width: 100%; min-height: 120px; resize: vertical; outline: none; white-space: pre-wrap; }
         .gemini-input:focus { border-color: var(--accent); }
 
-        .universal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .card-header { background: #111; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .universal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card-header { background: #111; padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .card-body { padding: 20px; background: #080808; color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-wrap; border-left: 2px solid #222; }
 
+        /* GRID SYSTEM */
         .journal-grid { display: grid; grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 0.5fr 0.5fr; width: 100%; align-items: center; gap: 10px; }
-        .data-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
-        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #ddd; }
+        @media (max-width: 768px) {
+            .journal-grid { grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; margin-bottom: 10px; }
+        }
+
+        .data-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
+        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ddd; }
         
-        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; }
+        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; height: 42px; align-items: center; }
+        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; height: 100%; display: flex; align-items: center; justify-content: center; }
         .side-opt:hover { color: #ccc; }
         input[name="t-side"] { display: none; }
         input[name="t-side"]:checked + .side-opt[for="side-buy"] { background: rgba(34, 197, 94, 0.2); color: var(--buy); border-bottom: 2px solid var(--buy); }
@@ -92,11 +145,11 @@
         .cal-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
         .cal-header-item { text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; padding: 10px 0; background: #111; border-bottom: 1px solid var(--border); }
         .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        .cal-cell { background: var(--card); min-height: 100px; padding: 8px; position: relative; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .cal-cell { background: var(--card); min-height: 80px; padding: 4px; position: relative; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
         .cal-cell:hover { background: #161616; }
         .cal-cell.empty { background: #0a0a0a; cursor: default; }
         .cal-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #555; font-weight: bold; }
-        .cal-pnl { font-size: 11px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
+        .cal-pnl { font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
         .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
 
         .pfp-box { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
@@ -113,9 +166,12 @@
 </head>
 <body class="flex h-screen">
 
-    <aside id="main-sidebar" class="w-72 border-r border-[#262626] flex flex-col h-full shrink-0 relative" style="background-color: var(--card);">
-        <div class="p-5 flex flex-col min-h-full"> <div class="mb-4 shrink-0">
-                <div class="flex items-center justify-between mb-6 mt-12">
+    <div id="mobile-overlay" onclick="closeMobileMenu()"></div>
+
+    <aside id="main-sidebar">
+        <div class="p-5 flex flex-col min-h-full">
+            <div class="mb-4 shrink-0">
+                <div class="flex items-center justify-between mb-6 mt-4 md:mt-12">
                     <div class="flex items-center gap-3">
                         <div class="pfp-box btn-accent" onclick="document.getElementById('pfp-input').click()">
                             <img id="pfp-display" class="hidden">
@@ -127,7 +183,8 @@
                             <p class="text-[9px] text-accent tracking-wider font-bold">BY ZERON FINANCE</p>
                         </div>
                     </div>
-                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white p-1">◀</button>
+                    <button onclick="toggleDesktopSidebar()" class="hidden md:block text-gray-500 hover:text-white p-1">◀</button>
+                    <button onclick="closeMobileMenu()" class="md:hidden text-gray-500 hover:text-white p-2 text-xl font-bold">✕</button>
                 </div>
                 
                 <div id="name-display-area" class="p-3 rounded border border-[#262626] bg-[#050505] group relative mb-4">
@@ -141,7 +198,7 @@
                 </div>
 
                 <div class="border border-[#262626] rounded bg-[#0a0a0a] overflow-hidden">
-                    <button onclick="toggleFunds()" class="w-full p-2 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
+                    <button onclick="toggleFunds()" class="w-full p-3 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
                         <span>💰 FUNDS & CAPITAL</span>
                         <span id="funds-arrow">▼</span>
                     </button>
@@ -153,7 +210,7 @@
                 </div>
             </div>
 
-            <nav class="shrink-0 space-y-1 mb-2 pr-1">
+            <nav class="space-y-1 mb-2 pr-1">
                 <div onclick="nav('home')" id="nav-home" class="nav-item active p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📅 Calendar</div>
                 <div onclick="nav('journal')" id="nav-journal" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">📓 Daily Ledger</div>
                 <div onclick="nav('rules')" id="nav-rules" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">✅ Rules Checklist</div>
@@ -166,7 +223,7 @@
                 📲 INSTALL APP
             </button>
 
-            <div class="mt-auto pt-4 border-t border-[#262626] shrink-0 pb-10">
+            <div class="mt-auto pt-4 border-t border-[#262626] pb-10 shrink-0">
                 <label class="text-[10px] text-gray-500 font-bold uppercase mb-2 block">Visual Theme</label>
                 <select id="theme-selector" onchange="changeTheme(this.value)" class="w-full bg-[#050505] text-xs text-gray-300 border border-[#333] rounded p-2 outline-none">
                     <option value="blue">🔵 Zeron Blue (Default)</option>
@@ -180,31 +237,33 @@
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto p-8 relative">
-        <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-50 text-gray-400 hover:text-white bg-[#111] border border-[#333] p-2 rounded shadow-lg">☰</button>
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+        <button onclick="openMobileMenu()" id="mobile-toggle-btn" class="fixed top-4 left-4 z-40 text-gray-400 hover:text-white bg-[#111] border border-[#333] p-3 rounded-lg shadow-lg md:hidden">
+            ☰
+        </button>
 
         <section id="page-home">
-            <div class="flex justify-between items-center mb-8 pl-12">
-                <h2 class="text-2xl font-bold text-white">Performance Calendar</h2>
+            <div class="flex justify-between items-center mb-8 pl-14 md:pl-0">
+                <h2 class="text-xl md:text-2xl font-bold text-white">Performance Calendar</h2>
                 <div class="flex items-center gap-2 bg-[#0a0a0a] p-1 rounded border border-[#262626]">
                     <button onclick="changeMonth(-1)" class="px-3 py-1 hover:bg-[#1a1a1a] rounded text-gray-400 font-bold">◀</button>
-                    <span id="cal-month-display" class="font-mono font-bold w-28 text-center text-accent text-sm">JAN 2026</span>
+                    <span id="cal-month-display" class="font-mono font-bold w-20 md:w-28 text-center text-accent text-xs md:text-sm">JAN 2026</span>
                     <button onclick="changeMonth(1)" class="px-3 py-1 hover:bg-[#1a1a1a] rounded text-gray-400 font-bold">▶</button>
                 </div>
             </div>
             <div class="cal-grid-header">
-                <div class="cal-header-item">Sunday</div><div class="cal-header-item">Monday</div><div class="cal-header-item">Tuesday</div><div class="cal-header-item">Wednesday</div><div class="cal-header-item">Thursday</div><div class="cal-header-item">Friday</div><div class="cal-header-item">Saturday</div>
+                <div class="cal-header-item">Sun</div><div class="cal-header-item">Mon</div><div class="cal-header-item">Tue</div><div class="cal-header-item">Wed</div><div class="cal-header-item">Thu</div><div class="cal-header-item">Fri</div><div class="cal-header-item">Sat</div>
             </div>
             <div id="calendar-grid" class="cal-grid-body"></div>
         </section>
 
         <section id="page-journal" class="hidden pb-24">
-            <div class="flex justify-between items-end mb-6 pl-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 pl-14 md:pl-0 gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Daily Ledger</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-white">Daily Ledger</h2>
                     <p class="text-xs text-gray-500 mt-1 font-mono">DATE: <span id="india-date-display" class="text-accent font-bold">--/--/----</span></p>
                 </div>
-                <input type="date" id="active-date" class="bg-[#0a0a0a] border border-[#222] text-white p-2 rounded cursor-pointer text-xs" onchange="loadJournalData()">
+                <input type="date" id="active-date" class="bg-[#0a0a0a] border border-[#222] text-white p-2 rounded cursor-pointer text-xs w-full md:w-auto" onchange="loadJournalData()">
             </div>
 
             <div class="bg-[#111] border border-[#262626] p-3 rounded-lg mb-6 flex items-center justify-between">
@@ -213,57 +272,62 @@
                     <div id="journal-rules-container" class="flex flex-wrap gap-2 overflow-x-auto text-xs text-gray-400"></div>
                 </div>
                 <div class="text-right">
-                    <p class="text-[9px] text-gray-500 font-bold uppercase">EST. ACCT BALANCE</p>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase">EST. BALANCE</p>
                     <p id="running-balance-display" class="text-white font-mono font-bold text-lg">₹0.00</p>
                 </div>
             </div>
 
-            <div id="entry-form-container" class="universal-card p-5">
+            <div id="entry-form-container" class="universal-card p-4 md:p-6">
                 <div class="flex justify-between items-center border-b border-[#262626] pb-3 mb-4">
                     <h3 class="font-bold text-white text-sm tracking-widest uppercase flex items-center gap-2">
                         <span class="w-1 h-4 btn-accent rounded-full"></span> 
                         <span id="form-title">New Trade Entry</span>
                     </h3>
                     <div class="flex gap-3">
-                        <button onclick="addNewEntryMode()" class="text-[10px] btn-accent px-2 py-1 rounded">➕ ADD NEW</button>
-                        <button onclick="clearForm()" class="text-[10px] text-gray-600 hover:text-white">CLEAR FORM</button>
+                        <button onclick="addNewEntryMode()" class="text-[10px] btn-accent px-3 py-2 rounded">➕ ADD</button>
+                        <button onclick="clearForm()" class="text-[10px] text-gray-600 hover:text-white">CLEAR</button>
                     </div>
                 </div>
                 <input type="hidden" id="edit-id"> 
-                <div class="grid grid-cols-12 gap-4 mb-4">
-                    <div class="col-span-2"><label class="data-label">TIME</label><input type="time" id="t-time" class="input-dark"></div>
-                    <div class="col-span-2"><label class="data-label">SIDE</label>
+                
+                <div class="grid grid-cols-2 md:grid-cols-12 gap-4 mb-4">
+                    <div class="col-span-1 md:col-span-2"><label class="data-label">TIME</label><input type="time" id="t-time" class="input-dark"></div>
+                    <div class="col-span-1 md:col-span-2"><label class="data-label">SIDE</label>
                         <div class="side-toggle">
                             <label><input type="radio" name="t-side" value="BUY" checked><div class="side-opt" for="side-buy">BUY</div></label>
                             <label><input type="radio" name="t-side" value="SELL"><div class="side-opt" for="side-sell">SELL</div></label>
                         </div>
                     </div>
-                    <div class="col-span-4"><label class="data-label">ASSET</label><input type="text" id="t-asset" class="input-dark font-bold uppercase" placeholder="NIFTY"></div>
-                    <div class="col-span-4"><label class="data-label">STRATEGY</label><select id="t-strat" class="input-dark bg-[#080808]"><option value="">Select...</option></select></div>
+                    <div class="col-span-2 md:col-span-4"><label class="data-label">ASSET</label><input type="text" id="t-asset" class="input-dark font-bold uppercase" placeholder="NIFTY"></div>
+                    <div class="col-span-2 md:col-span-4"><label class="data-label">STRATEGY</label><select id="t-strat" class="input-dark bg-[#080808]"><option value="">Select...</option></select></div>
                 </div>
-                <div class="grid grid-cols-5 gap-4 mb-4 bg-[#050505] p-3 rounded border border-[#262626]">
-                    <div><label class="data-label">QUANTITY</label><input type="text" id="t-size" class="input-dark" placeholder="Qty"></div>
-                    <div><label class="data-label">ENTRY PRICE</label><input type="number" id="t-entry" class="input-dark text-blue-400"></div>
-                    <div><label class="data-label">STOP LOSS</label><input type="number" id="t-sl" class="input-dark text-red-400"></div>
-                    <div><label class="data-label">EXIT PRICE</label><input type="number" id="t-exit" class="input-dark text-green-400"></div>
-                    <div><label class="data-label text-white">NET P&L</label><input type="number" id="t-pnl" class="input-dark font-bold text-white text-lg"></div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 bg-[#050505] p-3 rounded border border-[#262626]">
+                    <div class="col-span-1"><label class="data-label">QUANTITY</label><input type="text" id="t-size" class="input-dark" placeholder="Qty"></div>
+                    <div class="col-span-1"><label class="data-label">ENTRY</label><input type="number" id="t-entry" class="input-dark text-blue-400"></div>
+                    <div class="col-span-1"><label class="data-label">STOP LOSS</label><input type="number" id="t-sl" class="input-dark text-red-400"></div>
+                    <div class="col-span-1"><label class="data-label">EXIT</label><input type="number" id="t-exit" class="input-dark text-green-400"></div>
+                    <div class="col-span-2 md:col-span-1"><label class="data-label text-white">NET P&L</label><input type="number" id="t-pnl" class="input-dark font-bold text-white text-lg"></div>
                 </div>
+                
                 <div class="mb-4">
                     <label class="data-label text-accent">TRADING NOTES</label>
                     <textarea id="t-notes" class="gemini-input" placeholder="Why did you take this trade? logic? mistakes?"></textarea>
                 </div>
-                <button onclick="saveTrade()" class="w-full btn-accent py-3 rounded text-sm uppercase tracking-wide">SAVE ENTRY</button>
+                <button onclick="saveTrade()" class="w-full btn-accent py-4 rounded text-sm uppercase tracking-wide shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]">SAVE ENTRY</button>
             </div>
+            
             <div id="journal-feed" class="space-y-6"></div>
             <div id="empty-msg" class="text-center py-10 text-gray-700 text-xs italic hidden">Page is empty. Start writing.</div>
-            <div class="fixed bottom-0 left-0 right-0 bg-[#050505]/90 border-t border-[#262626] p-4 flex justify-between items-center z-50 px-10 backdrop-blur-md">
-                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest pl-16">Total P&L (Selected Day)</span>
-                <span id="daily-total-display" class="text-2xl font-bold font-mono text-white">₹0.00</span>
+            
+            <div class="fixed bottom-0 left-0 right-0 bg-[#050505]/90 border-t border-[#262626] p-4 flex justify-between items-center z-30 px-6 backdrop-blur-md">
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Total P&L</span>
+                <span id="daily-total-display" class="text-xl font-bold font-mono text-white">₹0.00</span>
             </div>
         </section>
 
         <section id="page-rules" class="hidden">
-            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Pre-Session Checklist</h2>
+            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Pre-Session Checklist</h2>
             <div class="universal-card p-5">
                 <h3 class="text-xs text-accent font-bold uppercase tracking-widest mb-4">Add New Rule</h3>
                 <div class="flex gap-2">
@@ -275,7 +339,7 @@
         </section>
 
         <section id="page-notepad" class="hidden">
-            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Quick Notes</h2>
+            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Quick Notes</h2>
             <div class="universal-card p-5">
                 <h3 class="font-bold text-sm tracking-widest uppercase mb-4 text-accent">Create New Note</h3>
                 <input type="text" id="note-title" class="input-dark mb-4 font-bold" placeholder="Note Title">
@@ -286,7 +350,7 @@
         </section>
 
         <section id="page-strategy" class="hidden">
-            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Strategy Files</h2>
+            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Strategy Files</h2>
             <div class="universal-card p-6">
                 <h3 class="font-bold text-accent mb-4 uppercase text-xs tracking-widest">Create New Strategy</h3>
                 <input type="text" id="s-name" placeholder="Strategy Name" class="input-dark mb-4 font-bold text-white">
@@ -297,15 +361,15 @@
         </section>
 
         <section id="page-mirror" class="hidden pb-10">
-            <h2 class="text-2xl font-bold mb-6 text-white pl-12">Analytics</h2>
+            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Analytics</h2>
             <div class="universal-card p-6 mb-6"><h4 class="text-xs text-gray-500 font-bold mb-4 uppercase">Account Growth</h4><div class="h-64"><canvas id="chart-equity"></canvas></div></div>
-            <div class="grid grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="universal-card p-6"><canvas id="chart-pnl"></canvas></div>
                 <div class="universal-card p-6"><canvas id="chart-count"></canvas></div>
             </div>
             <div class="universal-card p-6 border-t border-accent">
                 <h3 class="text-lg font-bold text-white mb-4">Export Reports (PDF)</h3>
-                <div class="grid grid-cols-5 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <button onclick="generatePDF('day')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Day</button>
                     <button onclick="generatePDF('week')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Week</button>
                     <button onclick="generatePDF('month')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Month</button>
@@ -319,13 +383,13 @@
     </main>
 
     <div id="edit-strat-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
-        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[600px] shadow-2xl">
+        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[90%] md:w-[600px] shadow-2xl">
             <h3 class="font-bold text-white mb-2">Edit File</h3><textarea id="edit-strat-notes" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
             <div class="flex gap-2"><button onclick="document.getElementById('edit-strat-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveStratEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
         </div>
     </div>
     <div id="edit-note-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
-        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[600px] shadow-2xl">
+        <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[90%] md:w-[600px] shadow-2xl">
             <h3 class="font-bold text-white mb-2">Edit Note</h3><textarea id="edit-note-text" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
             <div class="flex gap-2"><button onclick="document.getElementById('edit-note-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveNoteEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
         </div>
@@ -405,7 +469,21 @@
             root.style.setProperty('--bg', t.bg); root.style.setProperty('--card', t.card); root.style.setProperty('--border', t.border); root.style.setProperty('--accent', t.accent);
             localStorage.setItem('z_theme', themeName);
         }
-        function toggleSidebar() { document.getElementById('main-sidebar').classList.toggle('collapsed'); }
+        
+        // --- FIXED MOBILE TOGGLE LOGIC ---
+        function openMobileMenu() {
+            document.getElementById('main-sidebar').classList.add('active');
+            document.getElementById('mobile-overlay').classList.add('active');
+        }
+        function closeMobileMenu() {
+            document.getElementById('main-sidebar').classList.remove('active');
+            document.getElementById('mobile-overlay').classList.remove('active');
+        }
+        // Desktop collapse toggle
+        function toggleDesktopSidebar() {
+            document.getElementById('main-sidebar').classList.toggle('collapsed');
+        }
+        // Handle logic: if mobile, close sidebar after clicking nav item
         function toggleFunds() { document.getElementById('funds-content').classList.toggle('collapsed'); document.getElementById('funds-arrow').innerText = document.getElementById('funds-content').classList.contains('collapsed') ? '▼' : '▲'; }
         
         const DB = {
@@ -450,6 +528,7 @@
         function nav(page) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('page-'+page).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); document.getElementById('nav-'+page).classList.add('active');
+            if(window.innerWidth <= 768) closeMobileMenu(); // Auto-close on mobile nav click
             if(page === 'home') renderCalendar(); if(page === 'journal') loadJournalData(); if(page === 'rules') renderRules(); if(page === 'strategy') renderStrategy(); if(page === 'notepad') renderNotes(); if(page === 'mirror') renderMirror();
         }
         function formatIndiaDate(isoDate) { const [y, m, d] = isoDate.split('-'); return `${d}-${m}-${y}`; }
