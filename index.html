@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        /* --- THEME VARIABLES --- */
+        /* --- DYNAMIC THEME VARIABLES --- */
         :root { 
             --bg: #050505; 
             --card: #0f0f0f; 
@@ -50,42 +50,43 @@
             flex-direction: column;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
+            overflow-y: auto; /* Internal Scroll Enabled */
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
 
-        /* DESKTOP (Regular Sidebar) */
+        /* DESKTOP MODE */
         @media (min-width: 769px) {
             #main-sidebar {
                 width: 18rem;
                 height: 100vh;
                 position: relative;
+                transform: translateX(0) !important;
             }
             #main-sidebar.collapsed { margin-left: -18rem; }
-            #mobile-overlay { display: none !important; }
+            #mobile-backdrop { display: none !important; }
             #mobile-toggle-btn { display: none !important; }
         }
 
-        /* MOBILE (Slide-Over Drawer) */
+        /* MOBILE MODE (DRAWER) */
         @media (max-width: 768px) {
             #main-sidebar {
                 position: fixed;
                 top: 0;
                 left: 0;
                 bottom: 0;
-                width: 85%; /* Wide drawer */
-                max-width: 320px;
-                height: 100dvh; /* Full dynamic height */
+                width: 85%;
+                max-width: 300px;
+                height: 100dvh;
                 transform: translateX(-100%); /* Hidden by default */
                 box-shadow: 5px 0 25px rgba(0,0,0,0.8);
-                overflow-y: auto; /* ENABLE VERTICAL SCROLL INSIDE DRAWER */
-                -webkit-overflow-scrolling: touch;
+            }
+            #main-sidebar.active {
+                transform: translateX(0); /* Slide In */
             }
             
-            #main-sidebar.active {
-                transform: translateX(0); /* Slide in */
-            }
-
-            /* Overlay Backdrop */
-            #mobile-overlay {
+            /* BACKDROP */
+            #mobile-backdrop {
                 position: fixed;
                 inset: 0;
                 background: rgba(0,0,0,0.7);
@@ -95,19 +96,19 @@
                 pointer-events: none;
                 transition: opacity 0.3s ease;
             }
-            #mobile-overlay.active {
+            #mobile-backdrop.active {
                 opacity: 1;
                 pointer-events: auto;
             }
         }
 
-        /* SCROLLBAR STYLE */
+        /* CUSTOM SCROLLBAR */
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         .custom-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-        /* UI ELEMENTS */
+        /* THEME CLASSES */
         .btn-accent { background-color: var(--accent); color: #000; font-weight: bold; transition: 0.2s; }
         .btn-accent:hover { opacity: 0.9; transform: translateY(-1px); }
         .text-accent { color: var(--accent); }
@@ -116,42 +117,60 @@
         .nav-item.active { background: #1a1a1a; color: white; border-left: 3px solid var(--accent); }
         .nav-item:hover { background: #111; color: white; }
 
-        .input-dark { background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; width: 100%; outline: none; font-size: 14px; transition: 0.2s; }
+        /* INPUTS */
+        .input-dark { 
+            background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 10px; 
+            border-radius: 4px; width: 100%; outline: none; font-size: 13px; transition: 0.2s; 
+        }
         .input-dark:focus { border-color: var(--accent); }
         
-        .gemini-input { background: #0a0a0a; border: 1px solid var(--border); color: #ccc; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; padding: 15px; border-radius: 6px; width: 100%; min-height: 120px; resize: vertical; outline: none; white-space: pre-wrap; }
+        .gemini-input {
+            background: #0a0a0a; border: 1px solid var(--border); color: #ccc;
+            font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6;
+            padding: 15px; border-radius: 6px; width: 100%; min-height: 120px;
+            resize: vertical; outline: none; white-space: pre-wrap;
+        }
         .gemini-input:focus { border-color: var(--accent); }
 
-        .universal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .card-header { background: #111; padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        /* CARDS */
+        .universal-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
+            margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .card-header { background: #111; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .card-body { padding: 20px; background: #080808; color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-wrap; border-left: 2px solid #222; }
 
-        /* GRID SYSTEM */
+        /* UTILS - MOBILE GRID FIX */
         .journal-grid { display: grid; grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 0.5fr 0.5fr; width: 100%; align-items: center; gap: 10px; }
         @media (max-width: 768px) {
-            .journal-grid { grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; margin-bottom: 10px; }
+            .journal-grid { grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
         }
 
-        .data-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
-        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ddd; }
+        .data-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
+        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #ddd; }
         
-        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; height: 42px; align-items: center; }
-        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; }
         .side-opt:hover { color: #ccc; }
         input[name="t-side"] { display: none; }
         input[name="t-side"]:checked + .side-opt[for="side-buy"] { background: rgba(34, 197, 94, 0.2); color: var(--buy); border-bottom: 2px solid var(--buy); }
         input[name="t-side"]:checked + .side-opt[for="side-sell"] { background: rgba(239, 68, 68, 0.2); color: var(--sell); border-bottom: 2px solid var(--sell); }
 
+        /* CALENDAR */
         .cal-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
         .cal-header-item { text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; padding: 10px 0; background: #111; border-bottom: 1px solid var(--border); }
         .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        .cal-cell { background: var(--card); min-height: 80px; padding: 4px; position: relative; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .cal-cell { 
+            background: var(--card); min-height: 100px; padding: 8px; position: relative; cursor: pointer; transition: 0.2s; 
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
         .cal-cell:hover { background: #161616; }
         .cal-cell.empty { background: #0a0a0a; cursor: default; }
         .cal-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #555; font-weight: bold; }
-        .cal-pnl { font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
+        .cal-pnl { font-size: 11px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
         .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
 
+        /* PFP & CHECKLIST */
         .pfp-box { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
         .pfp-box img { width: 100%; height: 100%; object-fit: cover; }
         .checklist-item { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--card); border: 1px solid var(--border); margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
@@ -160,13 +179,25 @@
         .checklist-item.checked .tick-box { background: var(--accent); border-color: var(--accent); color: black; font-weight: bold; }
         .hidden { display: none !important; }
         
-        .funds-panel { max-height: 500px; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding 0.4s ease; opacity: 1; }
-        .funds-panel.collapsed { max-height: 0; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin: 0 !important; }
+        /* TRANSITION FOR FUNDS */
+        .funds-panel {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding 0.4s ease;
+            opacity: 1;
+        }
+        .funds-panel.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body class="flex h-screen">
 
-    <div id="mobile-overlay" onclick="closeMobileMenu()"></div>
+    <div id="mobile-backdrop" onclick="closeMobileMenu()"></div>
 
     <aside id="main-sidebar">
         <div class="p-5 flex flex-col min-h-full">
@@ -198,7 +229,7 @@
                 </div>
 
                 <div class="border border-[#262626] rounded bg-[#0a0a0a] overflow-hidden">
-                    <button onclick="toggleFunds()" class="w-full p-3 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
+                    <button onclick="toggleFunds()" class="w-full p-2 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
                         <span>💰 FUNDS & CAPITAL</span>
                         <span id="funds-arrow">▼</span>
                     </button>
@@ -277,29 +308,39 @@
                 </div>
             </div>
 
-            <div id="entry-form-container" class="universal-card p-4 md:p-6">
+            <div id="entry-form-container" class="universal-card p-5">
                 <div class="flex justify-between items-center border-b border-[#262626] pb-3 mb-4">
                     <h3 class="font-bold text-white text-sm tracking-widest uppercase flex items-center gap-2">
                         <span class="w-1 h-4 btn-accent rounded-full"></span> 
                         <span id="form-title">New Trade Entry</span>
                     </h3>
                     <div class="flex gap-3">
-                        <button onclick="addNewEntryMode()" class="text-[10px] btn-accent px-3 py-2 rounded">➕ ADD</button>
+                        <button onclick="addNewEntryMode()" class="text-[10px] btn-accent px-2 py-1 rounded">➕ ADD</button>
                         <button onclick="clearForm()" class="text-[10px] text-gray-600 hover:text-white">CLEAR</button>
                     </div>
                 </div>
                 <input type="hidden" id="edit-id"> 
                 
                 <div class="grid grid-cols-2 md:grid-cols-12 gap-4 mb-4">
-                    <div class="col-span-1 md:col-span-2"><label class="data-label">TIME</label><input type="time" id="t-time" class="input-dark"></div>
-                    <div class="col-span-1 md:col-span-2"><label class="data-label">SIDE</label>
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="data-label">TIME</label>
+                        <input type="time" id="t-time" class="input-dark">
+                    </div>
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="data-label">SIDE</label>
                         <div class="side-toggle">
                             <label><input type="radio" name="t-side" value="BUY" checked><div class="side-opt" for="side-buy">BUY</div></label>
                             <label><input type="radio" name="t-side" value="SELL"><div class="side-opt" for="side-sell">SELL</div></label>
                         </div>
                     </div>
-                    <div class="col-span-2 md:col-span-4"><label class="data-label">ASSET</label><input type="text" id="t-asset" class="input-dark font-bold uppercase" placeholder="NIFTY"></div>
-                    <div class="col-span-2 md:col-span-4"><label class="data-label">STRATEGY</label><select id="t-strat" class="input-dark bg-[#080808]"><option value="">Select...</option></select></div>
+                    <div class="col-span-2 md:col-span-4">
+                        <label class="data-label">ASSET</label>
+                        <input type="text" id="t-asset" class="input-dark font-bold uppercase" placeholder="NIFTY">
+                    </div>
+                    <div class="col-span-2 md:col-span-4">
+                        <label class="data-label">STRATEGY</label>
+                        <select id="t-strat" class="input-dark bg-[#080808]"><option value="">Select...</option></select>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 bg-[#050505] p-3 rounded border border-[#262626]">
@@ -309,25 +350,25 @@
                     <div class="col-span-1"><label class="data-label">EXIT</label><input type="number" id="t-exit" class="input-dark text-green-400"></div>
                     <div class="col-span-2 md:col-span-1"><label class="data-label text-white">NET P&L</label><input type="number" id="t-pnl" class="input-dark font-bold text-white text-lg"></div>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="data-label text-accent">TRADING NOTES</label>
                     <textarea id="t-notes" class="gemini-input" placeholder="Why did you take this trade? logic? mistakes?"></textarea>
                 </div>
-                <button onclick="saveTrade()" class="w-full btn-accent py-4 rounded text-sm uppercase tracking-wide shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]">SAVE ENTRY</button>
+                <button onclick="saveTrade()" class="w-full btn-accent py-3 rounded text-sm uppercase tracking-wide">SAVE ENTRY</button>
             </div>
-            
+
             <div id="journal-feed" class="space-y-6"></div>
             <div id="empty-msg" class="text-center py-10 text-gray-700 text-xs italic hidden">Page is empty. Start writing.</div>
-            
+
             <div class="fixed bottom-0 left-0 right-0 bg-[#050505]/90 border-t border-[#262626] p-4 flex justify-between items-center z-30 px-6 backdrop-blur-md">
-                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Total P&L</span>
-                <span id="daily-total-display" class="text-xl font-bold font-mono text-white">₹0.00</span>
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest pl-2">Total P&L</span>
+                <span id="daily-total-display" class="text-2xl font-bold font-mono text-white">₹0.00</span>
             </div>
         </section>
 
         <section id="page-rules" class="hidden">
-            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Pre-Session Checklist</h2>
+            <h2 class="text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Pre-Session Checklist</h2>
             <div class="universal-card p-5">
                 <h3 class="text-xs text-accent font-bold uppercase tracking-widest mb-4">Add New Rule</h3>
                 <div class="flex gap-2">
@@ -339,7 +380,7 @@
         </section>
 
         <section id="page-notepad" class="hidden">
-            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Quick Notes</h2>
+            <h2 class="text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Quick Notes</h2>
             <div class="universal-card p-5">
                 <h3 class="font-bold text-sm tracking-widest uppercase mb-4 text-accent">Create New Note</h3>
                 <input type="text" id="note-title" class="input-dark mb-4 font-bold" placeholder="Note Title">
@@ -350,7 +391,7 @@
         </section>
 
         <section id="page-strategy" class="hidden">
-            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Strategy Files</h2>
+            <h2 class="text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Strategy Files</h2>
             <div class="universal-card p-6">
                 <h3 class="font-bold text-accent mb-4 uppercase text-xs tracking-widest">Create New Strategy</h3>
                 <input type="text" id="s-name" placeholder="Strategy Name" class="input-dark mb-4 font-bold text-white">
@@ -361,12 +402,16 @@
         </section>
 
         <section id="page-mirror" class="hidden pb-10">
-            <h2 class="text-xl md:text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Analytics</h2>
-            <div class="universal-card p-6 mb-6"><h4 class="text-xs text-gray-500 font-bold mb-4 uppercase">Account Growth</h4><div class="h-64"><canvas id="chart-equity"></canvas></div></div>
+            <h2 class="text-2xl font-bold mb-6 text-white pl-14 md:pl-0">Analytics</h2>
+            <div class="universal-card p-6 mb-6">
+                <h4 class="text-xs text-gray-500 font-bold mb-4 uppercase">Account Growth (Capital + P&L)</h4>
+                <div class="h-64"><canvas id="chart-equity"></canvas></div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="universal-card p-6"><canvas id="chart-pnl"></canvas></div>
                 <div class="universal-card p-6"><canvas id="chart-count"></canvas></div>
             </div>
+
             <div class="universal-card p-6 border-t border-accent">
                 <h3 class="text-lg font-bold text-white mb-4">Export Reports (PDF)</h3>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -376,6 +421,7 @@
                     <button onclick="generatePDF('year')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">Current Year</button>
                     <button onclick="generatePDF('all')" class="bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded font-bold text-sm">All Time</button>
                 </div>
+                
                 <h3 class="text-lg font-bold text-white mt-8 mb-4">Performance Check</h3>
                 <button onclick="generateStrategyPDF()" class="btn-accent py-3 w-full rounded font-bold text-sm text-black">📊 Download Strategy Performance Report</button>
             </div>
@@ -384,20 +430,30 @@
 
     <div id="edit-strat-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
         <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[90%] md:w-[600px] shadow-2xl">
-            <h3 class="font-bold text-white mb-2">Edit File</h3><textarea id="edit-strat-notes" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
-            <div class="flex gap-2"><button onclick="document.getElementById('edit-strat-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveStratEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
+            <h3 class="font-bold text-white mb-2">Edit File</h3>
+            <textarea id="edit-strat-notes" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('edit-strat-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button>
+                <button onclick="saveStratEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button>
+            </div>
         </div>
     </div>
     <div id="edit-note-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50">
         <div class="bg-[#111] border border-[#222] p-6 rounded-xl w-[90%] md:w-[600px] shadow-2xl">
-            <h3 class="font-bold text-white mb-2">Edit Note</h3><textarea id="edit-note-text" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
-            <div class="flex gap-2"><button onclick="document.getElementById('edit-note-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button><button onclick="saveNoteEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button></div>
+            <h3 class="font-bold text-white mb-2">Edit Note</h3>
+            <textarea id="edit-note-text" class="gemini-input h-96 mb-4 font-mono text-sm"></textarea>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('edit-note-modal').classList.add('hidden')" class="bg-[#222] text-white w-full py-3 rounded font-bold">Cancel</button>
+                <button onclick="saveNoteEdit()" class="btn-accent w-full py-3 rounded font-bold">Update</button>
+            </div>
         </div>
     </div>
 
     <div id="welcome-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
         <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] text-center relative">
-            <div class="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden border border-gray-800"><img src="logo.jpg" class="w-full h-full object-cover"></div>
+            <div class="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-6 overflow-hidden border border-gray-800">
+                <img src="logo.jpg" class="w-full h-full object-cover">
+            </div>
             <h2 class="text-2xl font-bold text-white mb-2">Welcome to Trading Journal</h2>
             <p class="text-gray-400 text-sm mb-6 leading-relaxed">
                 Special thanks to <strong class="text-accent">Zeron Finance</strong>
@@ -457,6 +513,7 @@
             }
         }
 
+        // --- THEME ENGINE ---
         const themes = {
             blue: { bg: '#050505', card: '#0f0f0f', border: '#262626', accent: '#3b82f6' },
             gold: { bg: '#080808', card: '#121212', border: '#333333', accent: '#d4af37' },
@@ -464,28 +521,37 @@
             green: { bg: '#020a02', card: '#051105', border: '#1a331a', accent: '#22c55e' },
             purple: { bg: '#0a050a', card: '#110511', border: '#331a33', accent: '#a855f7' }
         };
+
         function changeTheme(themeName) {
-            const t = themes[themeName]; const root = document.documentElement;
-            root.style.setProperty('--bg', t.bg); root.style.setProperty('--card', t.card); root.style.setProperty('--border', t.border); root.style.setProperty('--accent', t.accent);
+            const t = themes[themeName];
+            const root = document.documentElement;
+            root.style.setProperty('--bg', t.bg);
+            root.style.setProperty('--card', t.card);
+            root.style.setProperty('--border', t.border);
+            root.style.setProperty('--accent', t.accent);
             localStorage.setItem('z_theme', themeName);
         }
-        
-        // --- FIXED MOBILE TOGGLE LOGIC ---
+
+        // --- MOBILE MENU LOGIC (DRAWER) ---
         function openMobileMenu() {
             document.getElementById('main-sidebar').classList.add('active');
-            document.getElementById('mobile-overlay').classList.add('active');
+            document.getElementById('mobile-backdrop').classList.add('active');
         }
         function closeMobileMenu() {
             document.getElementById('main-sidebar').classList.remove('active');
-            document.getElementById('mobile-overlay').classList.remove('active');
+            document.getElementById('mobile-backdrop').classList.remove('active');
         }
-        // Desktop collapse toggle
         function toggleDesktopSidebar() {
             document.getElementById('main-sidebar').classList.toggle('collapsed');
         }
-        // Handle logic: if mobile, close sidebar after clicking nav item
-        function toggleFunds() { document.getElementById('funds-content').classList.toggle('collapsed'); document.getElementById('funds-arrow').innerText = document.getElementById('funds-content').classList.contains('collapsed') ? '▼' : '▲'; }
-        
+        function toggleFunds() {
+            const p = document.getElementById('funds-content');
+            const a = document.getElementById('funds-arrow');
+            p.classList.toggle('collapsed');
+            a.innerText = p.classList.contains('collapsed') ? '▼' : '▲';
+        }
+
+        // --- DATA ---
         const DB = {
             client: localStorage.getItem('z_client') || "TRADER",
             capital: parseFloat(localStorage.getItem('z_capital')) || 0,
@@ -497,170 +563,548 @@
             trades: JSON.parse(localStorage.getItem('z_trades')) || [],
             notes: JSON.parse(localStorage.getItem('z_quicknotes')) || [] 
         };
+
         let activeDate = new Date().toISOString().split('T')[0];
         let calendarDate = new Date();
-        let editingStratIdx = null; let editingNoteIdx = null;
+        let editingStratIdx = null;
+        let editingNoteIdx = null;
 
         window.onload = function() {
             if (!localStorage.getItem('z_visited')) { document.getElementById('welcome-modal').classList.remove('hidden'); }
-            updateNameDisplay(); loadPFP();
-            document.getElementById('base-capital-input').value = DB.capital; document.getElementById('deposit-input').value = DB.deposit; document.getElementById('withdraw-input').value = DB.withdraw;
+            updateNameDisplay();
+            loadPFP();
+            document.getElementById('base-capital-input').value = DB.capital;
+            document.getElementById('deposit-input').value = DB.deposit;
+            document.getElementById('withdraw-input').value = DB.withdraw;
+            
             document.getElementById('active-date').value = activeDate;
-            const savedTheme = localStorage.getItem('z_theme') || 'blue'; document.getElementById('theme-selector').value = savedTheme; changeTheme(savedTheme);
-            renderCalendar(); renderRules(); renderNotes(); 
-            document.getElementById('t-time').value = new Date().toTimeString().substring(0,5);
+            const savedTheme = localStorage.getItem('z_theme') || 'blue';
+            document.getElementById('theme-selector').value = savedTheme;
+            changeTheme(savedTheme);
+            
+            renderCalendar();
+            renderRules();
+            renderNotes(); 
+            const now = new Date();
+            document.getElementById('t-time').value = now.toTimeString().substring(0,5);
         };
+
         function closeWelcome() { localStorage.setItem('z_visited', 'true'); document.getElementById('welcome-modal').classList.add('hidden'); }
+
         function saveAll() {
-            localStorage.setItem('z_client', DB.client); localStorage.setItem('z_capital', DB.capital); localStorage.setItem('z_deposit', DB.deposit); localStorage.setItem('z_withdraw', DB.withdraw); localStorage.setItem('z_pfp', DB.pfp);
-            localStorage.setItem('z_strats', JSON.stringify(DB.strats)); localStorage.setItem('z_rules', JSON.stringify(DB.rules)); localStorage.setItem('z_trades', JSON.stringify(DB.trades)); localStorage.setItem('z_quicknotes', JSON.stringify(DB.notes));
+            localStorage.setItem('z_client', DB.client);
+            localStorage.setItem('z_capital', DB.capital);
+            localStorage.setItem('z_deposit', DB.deposit);
+            localStorage.setItem('z_withdraw', DB.withdraw);
+            localStorage.setItem('z_pfp', DB.pfp);
+            localStorage.setItem('z_strats', JSON.stringify(DB.strats));
+            localStorage.setItem('z_rules', JSON.stringify(DB.rules));
+            localStorage.setItem('z_trades', JSON.stringify(DB.trades));
+            localStorage.setItem('z_quicknotes', JSON.stringify(DB.notes));
         }
+
         function saveFunds() {
-            DB.capital = parseFloat(document.getElementById('base-capital-input').value)||0; DB.deposit = parseFloat(document.getElementById('deposit-input').value)||0; DB.withdraw = parseFloat(document.getElementById('withdraw-input').value)||0;
-            saveAll(); if(!document.getElementById('page-journal').classList.contains('hidden')) loadJournalData(); if(!document.getElementById('page-mirror').classList.contains('hidden')) renderMirror();
+            const cap = parseFloat(document.getElementById('base-capital-input').value);
+            const dep = parseFloat(document.getElementById('deposit-input').value);
+            const wit = parseFloat(document.getElementById('withdraw-input').value);
+            
+            DB.capital = isNaN(cap) ? 0 : cap;
+            DB.deposit = isNaN(dep) ? 0 : dep;
+            DB.withdraw = isNaN(wit) ? 0 : wit;
+            
+            saveAll();
+            if(!document.getElementById('page-journal').classList.contains('hidden')) loadJournalData();
+            if(!document.getElementById('page-mirror').classList.contains('hidden')) renderMirror();
         }
-        function uploadPFP() { const file = document.getElementById('pfp-input').files[0]; if(!file) return; const r = new FileReader(); r.onloadend = function(){DB.pfp = r.result; saveAll(); loadPFP();}; r.readAsDataURL(file); }
-        function loadPFP() { if(DB.pfp && DB.pfp !== "null") { document.getElementById('pfp-display').src = DB.pfp; document.getElementById('pfp-display').classList.remove('hidden'); document.getElementById('pfp-placeholder').classList.add('hidden'); } }
-        function toggleNameEdit() { document.getElementById('name-display-area').classList.add('hidden'); document.getElementById('name-edit-area').classList.remove('hidden'); document.getElementById('client-name-input').value = DB.client; }
-        function saveName() { if(document.getElementById('client-name-input').value) { DB.client = document.getElementById('client-name-input').value; saveAll(); updateNameDisplay(); } document.getElementById('name-edit-area').classList.add('hidden'); document.getElementById('name-display-area').classList.remove('hidden'); }
+
+        function uploadPFP() {
+            const file = document.getElementById('pfp-input').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onloadend = function() { DB.pfp = reader.result; saveAll(); loadPFP(); }
+            reader.readAsDataURL(file);
+        }
+        function loadPFP() {
+            if(DB.pfp && DB.pfp !== "null") {
+                document.getElementById('pfp-display').src = DB.pfp;
+                document.getElementById('pfp-display').classList.remove('hidden');
+                document.getElementById('pfp-placeholder').classList.add('hidden');
+            }
+        }
+
+        function toggleNameEdit() {
+            document.getElementById('name-display-area').classList.add('hidden');
+            document.getElementById('name-edit-area').classList.remove('hidden');
+            document.getElementById('client-name-input').value = DB.client;
+        }
+        function saveName() {
+            const newName = document.getElementById('client-name-input').value;
+            if(newName) { DB.client = newName; saveAll(); updateNameDisplay(); }
+            document.getElementById('name-edit-area').classList.add('hidden');
+            document.getElementById('name-display-area').classList.remove('hidden');
+        }
         function updateNameDisplay() { document.getElementById('display-name').innerText = DB.client; }
         function resetAllData() { if(confirm("DELETE ALL DATA?")) { localStorage.clear(); location.reload(); } }
+
         function nav(page) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('page-'+page).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); document.getElementById('nav-'+page).classList.add('active');
-            if(window.innerWidth <= 768) closeMobileMenu(); // Auto-close on mobile nav click
-            if(page === 'home') renderCalendar(); if(page === 'journal') loadJournalData(); if(page === 'rules') renderRules(); if(page === 'strategy') renderStrategy(); if(page === 'notepad') renderNotes(); if(page === 'mirror') renderMirror();
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('page-'+page).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-'+page).classList.add('active');
+            
+            if(window.innerWidth <= 768) closeMobileMenu(); // AUTO CLOSE ON MOBILE CLICK
+
+            if(page === 'home') renderCalendar();
+            if(page === 'journal') loadJournalData();
+            if(page === 'rules') renderRules();
+            if(page === 'strategy') renderStrategy();
+            if(page === 'notepad') renderNotes();
+            if(page === 'mirror') renderMirror();
         }
+
         function formatIndiaDate(isoDate) { const [y, m, d] = isoDate.split('-'); return `${d}-${m}-${y}`; }
+
+        // --- CALENDAR ---
         function renderCalendar() {
-            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            const y = calendarDate.getFullYear(); const m = calendarDate.getMonth();
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            const y = calendarDate.getFullYear();
+            const m = calendarDate.getMonth();
             const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
             document.getElementById('cal-month-display').innerText = `${monthNames[m]} ${y}`;
-            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate();
-            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell empty"></div>`;
+            
+            const firstDay = new Date(y, m, 1).getDay();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            
+            for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-cell empty"></div>`; }
+
             for(let i=1; i<=daysInMonth; i++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const trades = DB.trades.filter(t => t.date === dStr);
-                let pnl = 0; trades.forEach(t => pnl += t.pnl);
-                let pnlHtml = trades.length ? `<span class="cal-pnl ${pnl>=0?'text-green-400':'text-red-400'}">${pnl>0?'+':''}${pnl}</span>` : '';
-                grid.innerHTML += `<div class="cal-cell" onclick="openDate('${dStr}')"><span class="cal-date">${i}</span>${trades.length?`<div class="cal-trades-dot"></div>`:''}${pnlHtml}</div>`;
+                let pnl = 0; let count = 0;
+                trades.forEach(t => { pnl += t.pnl; count++; });
+                
+                let pnlHtml = '';
+                if(count > 0) {
+                    const color = pnl >= 0 ? 'text-green-400' : 'text-red-400';
+                    pnlHtml = `<span class="cal-pnl ${color}">${pnl > 0 ? '+' : ''}${pnl}</span>`;
+                }
+                const dot = count > 0 ? `<div class="cal-trades-dot"></div>` : '';
+
+                grid.innerHTML += `
+                <div class="cal-cell" onclick="openDate('${dStr}')">
+                    <span class="cal-date">${i}</span>
+                    ${dot}
+                    ${pnlHtml}
+                </div>`;
             }
         }
         function changeMonth(d) { calendarDate.setMonth(calendarDate.getMonth() + d); renderCalendar(); }
         function openDate(d) { activeDate = d; document.getElementById('active-date').value = d; nav('journal'); }
+
+        // --- JOURNAL ---
         function loadJournalData() {
-            activeDate = document.getElementById('active-date').value; document.getElementById('india-date-display').innerText = formatIndiaDate(activeDate);
-            const rBox = document.getElementById('journal-rules-container'); rBox.innerHTML = DB.rules.length ? '' : '<span class="text-gray-600 text-xs italic">No rules.</span>';
+            activeDate = document.getElementById('active-date').value;
+            document.getElementById('india-date-display').innerText = formatIndiaDate(activeDate);
+            
+            const rBox = document.getElementById('journal-rules-container');
+            rBox.innerHTML = DB.rules.length ? '' : '<span class="text-gray-600 text-xs italic">No rules.</span>';
             DB.rules.forEach(r => rBox.innerHTML += `<span class="bg-[#111] text-accent text-[10px] px-2 py-1 rounded border border-[#333] whitespace-nowrap">📌 ${r.text}</span>`);
-            const sel = document.getElementById('t-strat'); sel.innerHTML = '<option value="">Select...</option>';
+            
+            const sel = document.getElementById('t-strat');
+            sel.innerHTML = '<option value="">Select...</option>';
             DB.strats.forEach(s => sel.innerHTML += `<option value="${s.name}">${s.name}</option>`);
-            let accumulatedPnl = 0; const activeTime = new Date(activeDate).getTime();
-            DB.trades.forEach(t => { if(new Date(t.date).getTime() <= activeTime) accumulatedPnl += t.pnl; });
-            document.getElementById('running-balance-display').innerText = "₹" + (DB.capital + DB.deposit - DB.withdraw + accumulatedPnl).toFixed(2);
-            const feed = document.getElementById('journal-feed'); feed.innerHTML = '';
-            const trades = DB.trades.filter(t => t.date === activeDate);
-            if(trades.length === 0) document.getElementById('empty-msg').classList.remove('hidden'); else document.getElementById('empty-msg').classList.add('hidden');
+            
+            let accumulatedPnl = 0;
+            const activeTime = new Date(activeDate).getTime();
+            DB.trades.forEach(t => {
+                if(new Date(t.date).getTime() <= activeTime) {
+                    accumulatedPnl += t.pnl;
+                }
+            });
+            const estimatedBalance = DB.capital + DB.deposit - DB.withdraw + accumulatedPnl;
+            document.getElementById('running-balance-display').innerText = "₹" + estimatedBalance.toFixed(2);
+
+            const feed = document.getElementById('journal-feed');
+            feed.innerHTML = '';
             let dailyTotal = 0;
+            const trades = DB.trades.filter(t => t.date === activeDate);
+            
+            if(trades.length === 0) document.getElementById('empty-msg').classList.remove('hidden'); else document.getElementById('empty-msg').classList.add('hidden');
+            
             trades.forEach((t) => {
-                const idx = DB.trades.indexOf(t); dailyTotal += t.pnl;
+                const realIndex = DB.trades.indexOf(t);
+                dailyTotal += t.pnl;
                 const pnlColor = t.pnl >= 0 ? 'text-green-400' : 'text-red-400';
+                const pnlSign = t.pnl >= 0 ? '+' : '';
                 const sideColor = t.side === 'BUY' ? 'text-green-500' : 'text-red-500';
                 const sideBg = t.side === 'BUY' ? 'bg-green-900/20' : 'bg-red-900/20';
-                feed.innerHTML += `<div class="universal-card"><div class="card-header"><div class="journal-grid"><div><span class="data-label">TIME</span><span class="data-val">${t.time}</span></div><div><span class="data-label">SIDE</span><span class="data-val ${sideColor} font-bold px-2 py-0.5 rounded ${sideBg}">${t.side}</span></div><div><span class="data-label">ASSET</span><span class="text-white font-bold text-sm tracking-wide">${t.asset}</span></div><div><span class="data-label">STRAT</span><span class="text-accent text-xs">${t.strat}</span></div><div><span class="data-label">ENTRY</span><span class="data-val text-blue-200">${t.entry}</span></div><div><span class="data-label">EXIT</span><span class="data-val text-green-200">${t.exit}</span></div><div><span class="data-label">QTY</span><span class="data-val text-gray-400">${t.size}</span></div><div><span class="data-label">P&L</span><span class="font-bold text-lg ${pnlColor}">${t.pnl>=0?'+':''}${t.pnl}</span></div><div class="text-right"><button onclick="editTrade(${idx})" class="text-[10px] text-gray-500 hover:text-white border border-[#222] px-2 py-1 rounded">EDIT</button></div></div></div><div class="card-body">${t.notes}</div></div>`;
+                
+                feed.innerHTML += `
+                <div class="universal-card">
+                    <div class="card-header flex-col items-start gap-2 md:flex-row md:items-center">
+                        <div class="journal-grid w-full">
+                            <div><span class="data-label">TIME</span><span class="data-val">${t.time}</span></div>
+                            <div>
+                                <span class="data-label">SIDE</span>
+                                <span class="data-val ${sideColor} font-bold px-2 py-0.5 rounded ${sideBg}">${t.side || '-'}</span>
+                            </div>
+                            <div><span class="data-label">ASSET</span><span class="text-white font-bold text-sm tracking-wide">${t.asset}</span></div>
+                            <div><span class="data-label">STRAT</span><span class="text-accent text-xs">${t.strat || '-'}</span></div>
+                            <div><span class="data-label">ENTRY</span><span class="data-val text-blue-200">${t.entry}</span></div>
+                            <div><span class="data-label">EXIT</span><span class="data-val text-green-200">${t.exit}</span></div>
+                            <div><span class="data-label">QTY</span><span class="data-val text-gray-400">${t.size}</span></div>
+                            <div><span class="data-label">P&L</span><span class="font-bold text-lg ${pnlColor}">${pnlSign}${t.pnl}</span></div>
+                        </div>
+                        <div class="w-full md:w-auto text-right mt-2 md:mt-0">
+                            <button onclick="editTrade(${realIndex})" class="text-[10px] text-gray-500 hover:text-white border border-[#222] px-3 py-2 rounded w-full md:w-auto">EDIT</button>
+                        </div>
+                    </div>
+                    <div class="card-body border-t border-[#222] mt-0">${t.notes}</div>
+                </div>`;
             });
             document.getElementById('daily-total-display').innerText = "₹" + dailyTotal.toFixed(2);
             document.getElementById('daily-total-display').className = `text-2xl font-bold font-mono ${dailyTotal >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            
             if(document.getElementById('form-title').innerText !== "Update Entry") clearForm();
         }
+
         function saveTrade() {
-            const editId = document.getElementById('edit-id').value; const sideEl = document.querySelector('input[name="t-side"]:checked');
-            const t = { date: activeDate, time: document.getElementById('t-time').value, side: sideEl ? sideEl.value : 'BUY', asset: document.getElementById('t-asset').value, size: document.getElementById('t-size').value, strat: document.getElementById('t-strat').value, entry: document.getElementById('t-entry').value, sl: document.getElementById('t-sl').value, exit: document.getElementById('t-exit').value, pnl: parseFloat(document.getElementById('t-pnl').value), notes: document.getElementById('t-notes').value };
+            const editId = document.getElementById('edit-id').value;
+            const sideEl = document.querySelector('input[name="t-side"]:checked');
+            
+            const t = {
+                date: activeDate, 
+                time: document.getElementById('t-time').value,
+                side: sideEl ? sideEl.value : 'BUY',
+                asset: document.getElementById('t-asset').value,
+                size: document.getElementById('t-size').value,
+                strat: document.getElementById('t-strat').value,
+                entry: document.getElementById('t-entry').value,
+                sl: document.getElementById('t-sl').value,
+                exit: document.getElementById('t-exit').value,
+                pnl: parseFloat(document.getElementById('t-pnl').value),
+                notes: document.getElementById('t-notes').value
+            };
+            
             if(!t.asset || isNaN(t.pnl)) return alert("Asset and P&L required");
-            if (editId) { DB.trades[editId] = t; document.getElementById('edit-id').value = ""; } else { DB.trades.push(t); }
-            saveAll(); clearForm(); loadJournalData();
+            
+            if (editId) {
+                DB.trades[editId] = t;
+                document.getElementById('edit-id').value = "";
+            } else { DB.trades.push(t); }
+            
+            saveAll(); clearForm(); loadJournalData(); 
         }
+
         function editTrade(idx) {
-            const t = DB.trades[idx]; document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' });
-            document.getElementById('edit-id').value = idx; document.getElementById('form-title').innerText = "Update Entry";
-            document.getElementById('t-time').value = t.time; document.getElementById('t-asset').value = t.asset; document.getElementById('t-size').value = t.size; document.getElementById('t-strat').value = t.strat; document.getElementById('t-entry').value = t.entry; document.getElementById('t-exit').value = t.exit; document.getElementById('t-sl').value = t.sl; document.getElementById('t-pnl').value = t.pnl; document.getElementById('t-notes').value = t.notes;
-            const radios = document.getElementsByName('t-side'); for(let r of radios) { if(r.value === t.side) r.checked = true; }
+            const t = DB.trades[idx];
+            document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('edit-id').value = idx;
+            document.getElementById('form-title').innerText = "Update Entry";
+            document.getElementById('t-time').value = t.time;
+            
+            const radios = document.getElementsByName('t-side');
+            for(let r of radios) { if(r.value === t.side) r.checked = true; }
+
+            document.getElementById('t-asset').value = t.asset;
+            document.getElementById('t-size').value = t.size;
+            document.getElementById('t-strat').value = t.strat;
+            document.getElementById('t-entry').value = t.entry;
+            document.getElementById('t-exit').value = t.exit;
+            document.getElementById('t-sl').value = t.sl;
+            document.getElementById('t-pnl').value = t.pnl;
+            document.getElementById('t-notes').value = t.notes;
         }
-        function addNewEntryMode() { clearForm(); document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' }); }
-        function clearForm() { document.getElementById('edit-id').value = ""; document.getElementById('form-title').innerText = "New Trade Entry"; document.getElementById('t-pnl').value = ''; document.getElementById('t-asset').value = ''; document.getElementById('t-notes').value = ''; document.getElementById('t-entry').value = ''; document.getElementById('t-exit').value = ''; document.getElementById('t-sl').value = ''; document.getElementById('t-time').value = new Date().toTimeString().substring(0,5); }
+
+        function addNewEntryMode() {
+            clearForm();
+            document.getElementById('entry-form-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearForm() {
+            document.getElementById('edit-id').value = "";
+            document.getElementById('form-title').innerText = "New Trade Entry";
+            document.getElementById('t-pnl').value = '';
+            document.getElementById('t-asset').value = '';
+            document.getElementById('t-notes').value = '';
+            document.getElementById('t-entry').value = '';
+            document.getElementById('t-exit').value = '';
+            document.getElementById('t-sl').value = '';
+            const now = new Date();
+            document.getElementById('t-time').value = now.toTimeString().substring(0,5);
+        }
+
+        // --- RULES ---
         function renderRules() {
-            const list = document.getElementById('checklist-container'); list.innerHTML = '';
-            DB.rules.forEach((r, i) => { list.innerHTML += `<div class="checklist-item ${r.checked?'checked':''}" onclick="toggleRule(${i})"><div class="tick-box">✔</div><span class="text-sm font-bold text-gray-300 flex-1">${r.text}</span><button onclick="event.stopPropagation(); delRule(${i})" class="text-red-500 font-bold px-2">x</button></div>`; });
+            const list = document.getElementById('checklist-container');
+            list.innerHTML = '';
+            DB.rules.forEach((r, i) => {
+                const checked = r.checked ? 'checked' : '';
+                const style = r.checked ? 'opacity:0.5; text-decoration:line-through; border-color:var(--accent)' : '';
+                const bg = r.checked ? 'var(--accent)' : 'transparent';
+                list.innerHTML += `
+                <div class="checklist-item ${checked}" style="${style}" onclick="toggleRule(${i})">
+                    <div class="tick-box" style="background:${bg}">✔</div>
+                    <span class="text-sm font-bold text-gray-300 flex-1">${r.text}</span>
+                    <button onclick="event.stopPropagation(); delRule(${i})" class="text-red-500 font-bold px-2">x</button>
+                </div>`;
+            });
         }
-        function addRule() { const r = document.getElementById('r-text').value; if(r) { DB.rules.push({ text: r, checked: false }); saveAll(); document.getElementById('r-text').value=''; renderRules(); } }
+        function addRule() { const r = document.getElementById('r-text').value; if(!r) return; DB.rules.push({ text: r, checked: false }); saveAll(); document.getElementById('r-text').value=''; renderRules(); }
         function delRule(i) { DB.rules.splice(i,1); saveAll(); renderRules(); }
         function toggleRule(i) { DB.rules[i].checked = !DB.rules[i].checked; saveAll(); renderRules(); }
+
+        // --- QUICK NOTES ---
         function renderNotes() {
-            const list = document.getElementById('notes-feed'); list.innerHTML = '';
-            DB.notes.slice().reverse().forEach((n) => { const idx = DB.notes.indexOf(n); list.innerHTML += `<div class="universal-card"><div class="card-header"><span class="font-bold text-white text-lg tracking-wide">${n.title}</span><div class="flex gap-2"><button onclick="openNoteEdit(${idx})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button><button onclick="deleteNote(${idx})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button></div></div><div class="card-body">${n.content}</div></div>`; });
+            const list = document.getElementById('notes-feed');
+            list.innerHTML = '';
+            DB.notes.slice().reverse().forEach((n) => {
+                const realIndex = DB.notes.indexOf(n);
+                list.innerHTML += `
+                <div class="universal-card">
+                    <div class="card-header">
+                        <span class="font-bold text-white text-lg tracking-wide">${n.title}</span>
+                        <div class="flex gap-2">
+                            <button onclick="openNoteEdit(${realIndex})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button>
+                            <button onclick="deleteNote(${realIndex})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button>
+                        </div>
+                    </div>
+                    <div class="card-body">${n.content}</div>
+                </div>`;
+            });
         }
-        function saveNote() { const t = document.getElementById('note-title').value; const c = document.getElementById('note-content').value; if(t) { DB.notes.push({ title: t, content: c }); saveAll(); document.getElementById('note-title').value = ''; document.getElementById('note-content').value = ''; renderNotes(); } }
+        function saveNote() {
+            const t = document.getElementById('note-title').value;
+            const c = document.getElementById('note-content').value;
+            if(!t) return;
+            DB.notes.push({ title: t, content: c });
+            saveAll(); document.getElementById('note-title').value = ''; document.getElementById('note-content').value = ''; renderNotes();
+        }
         function deleteNote(i) { if(confirm("Delete note?")) { DB.notes.splice(i, 1); saveAll(); renderNotes(); } }
         function openNoteEdit(i) { editingNoteIdx = i; document.getElementById('edit-note-text').value = DB.notes[i].content; document.getElementById('edit-note-modal').classList.remove('hidden'); }
         function saveNoteEdit() { DB.notes[editingNoteIdx].content = document.getElementById('edit-note-text').value; saveAll(); document.getElementById('edit-note-modal').classList.add('hidden'); renderNotes(); }
+
+        // --- STRATEGY ---
         function renderStrategy() {
-            const list = document.getElementById('strategy-list'); list.innerHTML = '';
-            DB.strats.forEach((s, i) => { list.innerHTML += `<div class="universal-card"><div class="card-header"><h4 class="font-bold text-white text-lg">${s.name}</h4><div class="flex gap-2"><button onclick="openStratEdit(${i})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button><button onclick="deleteStrategy(${i})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button></div></div><div class="card-body">${s.notes}</div></div>`; });
+            const list = document.getElementById('strategy-list');
+            list.innerHTML = '';
+            DB.strats.forEach((s, i) => {
+                list.innerHTML += `
+                    <div class="universal-card">
+                        <div class="card-header">
+                            <h4 class="font-bold text-white text-lg">${s.name}</h4>
+                            <div class="flex gap-2">
+                                <button onclick="openStratEdit(${i})" class="text-xs text-accent border border-accent px-3 py-1 rounded">EDIT</button>
+                                <button onclick="deleteStrategy(${i})" class="text-xs text-red-500 border border-red-500 px-3 py-1 rounded">DEL</button>
+                            </div>
+                        </div>
+                        <div class="card-body">${s.notes}</div>
+                    </div>`;
+            });
         }
-        function addStrategy() { const n = document.getElementById('s-name').value; const no = document.getElementById('s-notes').value; if(n) { DB.strats.push({ name: n, notes: no }); saveAll(); document.getElementById('s-name').value=''; document.getElementById('s-notes').value=''; renderStrategy(); } }
+        function addStrategy() {
+            const n = document.getElementById('s-name').value;
+            const no = document.getElementById('s-notes').value;
+            if(!n) return;
+            DB.strats.push({ name: n, notes: no });
+            saveAll(); document.getElementById('s-name').value=''; document.getElementById('s-notes').value=''; renderStrategy();
+        }
         function deleteStrategy(i) { if(confirm("Delete strategy?")) { DB.strats.splice(i, 1); saveAll(); renderStrategy(); } }
         function openStratEdit(i) { editingStratIdx = i; document.getElementById('edit-strat-notes').value = DB.strats[i].notes; document.getElementById('edit-strat-modal').classList.remove('hidden'); }
         function saveStratEdit() { DB.strats[editingStratIdx].notes = document.getElementById('edit-strat-notes').value; saveAll(); document.getElementById('edit-strat-modal').classList.add('hidden'); renderStrategy(); }
+
+        // --- MIRROR (ANALYTICS FIX: No Strategy & Single Points) ---
+        let c1, c2, c3;
         function renderMirror() {
             const ctx1 = document.getElementById('chart-pnl'); const ctx2 = document.getElementById('chart-count'); const ctx3 = document.getElementById('chart-equity');
-            if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy();
+            if(c1) c1.destroy(); if(c2) c2.destroy(); if(c3) c3.destroy();
+            
             const sortedTrades = [...DB.trades].sort((a,b) => new Date(a.date) - new Date(b.date));
             const s = {}; 
-            // FIXED: Automatically detect strategies from trades even if deleted from list
-            sortedTrades.forEach(t => { const n = t.strat || "No Strategy"; if(!s[n]) s[n]={p:0,c:0}; s[n].p += t.pnl; s[n].c++; });
             
-            let bal = DB.capital + DB.deposit - DB.withdraw; const eqL = ['Start']; const eqD = [bal]; const daily = {};
-            sortedTrades.forEach(t => { if(!daily[t.date]) daily[t.date] = 0; daily[t.date] += t.pnl; });
-            Object.keys(daily).sort((a,b)=>new Date(a)-new Date(b)).forEach(d => { bal += daily[d]; eqL.push(d); eqD.push(bal); });
-            // FIXED: Ensure line graph shows even with 1 point
-            if(eqD.length === 1) { eqL.push('Now'); eqD.push(bal); }
+            // Auto-detect strategies including "No Strategy"
+            sortedTrades.forEach(t => { 
+                const n = t.strat || "No Strategy"; 
+                if(!s[n]) s[n]={p:0,c:0}; 
+                s[n].p += t.pnl; 
+                s[n].c++; 
+            });
+            
+            let runningCapital = DB.capital + DB.deposit - DB.withdraw; 
+            const eqLabels = []; const eqData = [];
+            const dailyMap = {};
+            
+            sortedTrades.forEach(t => {
+                if(!dailyMap[t.date]) dailyMap[t.date] = 0;
+                dailyMap[t.date] += t.pnl;
+            });
+
+            const sortedDates = Object.keys(dailyMap).sort((a,b) => new Date(a) - new Date(b));
+            
+            // Seed start
+            eqLabels.push('Start');
+            eqData.push(runningCapital);
+
+            sortedDates.forEach(d => {
+                runningCapital += dailyMap[d];
+                eqLabels.push(d);
+                eqData.push(runningCapital);
+            });
+
+            // Single point fix
+            if(eqData.length === 1) { eqLabels.push('Now'); eqData.push(runningCapital); }
 
             const l = Object.keys(s);
-            window.c3 = new Chart(ctx3, { type: 'line', data: { labels: eqL, datasets: [{ label: 'Account Equity', data: eqD, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }] }, options: { scales: { y: { grid: { color: '#222' } } } } });
-            window.c1 = new Chart(ctx1, { type: 'bar', data: { labels: l, datasets: [{ label: 'P&L', data: l.map(k=>s[k].p), backgroundColor: l.map(k=>s[k].p>=0?'#22c55e':'#ef4444') }] }, options: { scales: { y: { grid: { color: '#222' } } } } });
-            window.c2 = new Chart(ctx2, { type: 'doughnut', data: { labels: l, datasets: [{ data: l.map(k=>s[k].c), backgroundColor: ['#3b82f6','#eab308','#ec4899','#8b5cf6'] }] } });
+            c3 = new Chart(ctx3, { type: 'line', data: { labels: eqLabels, datasets: [{ label: 'Total Account Value', data: eqData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { grid: { color: '#222' } }, x: { display: false } } } });
+            c1 = new Chart(ctx1, { type:'bar', data:{labels:l, datasets:[{label:'P&L by Strategy', data:l.map(x=>s[x].p), backgroundColor:l.map(x=>s[x].p>=0?'#4ade80':'#f87171')}]}, options:{scales:{y:{grid:{color:'#222'}}}} });
+            c2 = new Chart(ctx2, { type:'doughnut', data:{labels:l, datasets:[{data:l.map(x=>s[x].c), backgroundColor:['#3b82f6','#eab308','#ec4899','#10b981','#8b5cf6']}]} });
         }
+
+        // --- GENERAL PDF REPORT (UPGRADED) ---
         function generatePDF(scope) {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            let filtered = DB.trades; let title = "All Time Report";
-            if(scope==='day') { filtered = DB.trades.filter(t=>t.date===activeDate); title=`Daily: ${activeDate}`; }
-            else if(scope==='month') { filtered = DB.trades.filter(t=>t.date.startsWith(activeDate.substring(0,7))); title=`Month: ${activeDate.substring(0,7)}`; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            doc.setFontSize(18); doc.text(`Daily Report: ${DB.client}`, 14, 20);
-            doc.setFontSize(10); doc.setTextColor(100); doc.text("Generated by Zeron Finance", 14, 26);
+            let reportTitle = "";
+            let filteredTrades = [];
             
-            let total = 0; let wins = 0; filtered.forEach(t=>{total+=t.pnl; if(t.pnl>0) wins++});
-            doc.text(`Trades: ${filtered.length} | P&L: ${total.toFixed(2)} | Win%: ${(filtered.length?(wins/filtered.length*100):0).toFixed(1)}%`, 14, 35);
-            
-            // UPDATED: Added Strat, Qty, and SL to the PDF export
-            const body = filtered.map(t=>[t.date, t.asset, t.side, t.strat, t.size, t.entry, t.sl, t.exit, t.pnl, t.notes]);
-            doc.autoTable({ 
-                startY: 40, 
-                head: [['Date','Asset','Side','Strat','Qty','Entry','SL','Exit','P&L','Notes']], 
-                body: body, 
-                theme: 'grid', 
-                styles: { fontSize: 7 }, 
-                headStyles: { fillColor: [30,30,30] } 
+            if(scope === 'day') {
+                reportTitle = `Date: ${activeDate}`;
+                filteredTrades = DB.trades.filter(t => t.date === activeDate);
+            } else if (scope === 'week') {
+                reportTitle = "Weekly Report";
+                const current = new Date(activeDate);
+                const first = current.getDate() - current.getDay(); 
+                const last = first + 6; 
+                const firstDay = new Date(current); firstDay.setDate(first); firstDay.setHours(0,0,0,0);
+                const lastDay = new Date(current); lastDay.setDate(last); lastDay.setHours(23,59,59,999);
+                filteredTrades = DB.trades.filter(t => { const tDate = new Date(t.date); return tDate >= firstDay && tDate <= lastDay; });
+            } else if (scope === 'month') {
+                const yM = activeDate.substring(0, 7);
+                reportTitle = `Monthly Report: ${yM}`;
+                filteredTrades = DB.trades.filter(t => t.date.startsWith(yM));
+            } else if (scope === 'year') {
+                const y = activeDate.substring(0, 4);
+                reportTitle = `Annual Report: ${y}`;
+                filteredTrades = DB.trades.filter(t => t.date.startsWith(y));
+            } else {
+                reportTitle = "All Time Trading Report";
+                filteredTrades = DB.trades;
+            }
+
+            filteredTrades.sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+
+            let totalPnL = 0;
+            let wins = 0;
+            filteredTrades.forEach(t => {
+                totalPnL += t.pnl;
+                if(t.pnl > 0) wins++;
             });
-            doc.save(`Zeron_${scope}.pdf`);
+            const winRate = filteredTrades.length > 0 ? ((wins / filteredTrades.length) * 100).toFixed(1) : 0;
+            const currentBalance = DB.capital + DB.deposit - DB.withdraw + totalPnL;
+
+            doc.setFontSize(18);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Daily Report: ${DB.client}`, 14, 20); 
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generated by Zeron Finance`, 14, 26);
+            
+            doc.text(reportTitle, 14, 32);
+
+            doc.setDrawColor(0);
+            doc.setFillColor(245, 245, 245);
+            doc.rect(14, 36, 180, 25, 'F');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            doc.text(`Total Trades: ${filteredTrades.length}`, 20, 44);
+            doc.text(`Trading Net P&L: ${totalPnL.toFixed(2)}`, 80, 44);
+            doc.text(`Win Rate: ${winRate}%`, 140, 44);
+            
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Deposits: ${DB.deposit.toFixed(2)} | Withdrawals: ${DB.withdraw.toFixed(2)}`, 20, 54);
+            doc.text(`Est. Net Balance: ${currentBalance.toFixed(2)}`, 140, 54);
+
+            // UPGRADED PDF COLUMNS
+            const tableBody = filteredTrades.map(t => [t.date, t.asset, t.side, t.strat || '-', t.size, t.entry, t.sl, t.exit, t.pnl, t.notes]);
+
+            doc.autoTable({
+                startY: 65,
+                head: [['Date', 'Asset', 'Side', 'Strat', 'Qty', 'Entry', 'SL', 'Exit', 'P&L', 'Notes']],
+                body: tableBody,
+                theme: 'grid',
+                styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' }, 
+                headStyles: { fillColor: [20, 20, 20] },
+                columnStyles: {
+                    9: { cellWidth: 40 } 
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 8) {
+                        const val = parseFloat(data.cell.raw);
+                        if (val >= 0) data.cell.styles.textColor = [0, 150, 0];
+                        else data.cell.styles.textColor = [200, 0, 0];
+                    }
+                }
+            });
+            doc.save(`${scope}_report.pdf`);
         }
+
+        // --- STRATEGY PDF REPORT ---
         function generateStrategyPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.setFontSize(18); doc.text("Strategy Audit", 14, 20); doc.setFontSize(10); doc.text("Generated by Zeron Finance", 14, 26);
-            const stats = {}; DB.trades.forEach(t=>{ const s=t.strat||'None'; if(!stats[s]) stats[s]={c:0,w:0,p:0}; stats[s].c++; stats[s].p+=t.pnl; if(t.pnl>0) stats[s].w++; });
-            const body = Object.keys(stats).map(k=>[k, stats[k].c, `${((stats[k].w/stats[k].c)*100).toFixed(1)}%`, stats[k].p.toFixed(2)]);
-            doc.autoTable({ startY: 35, head: [['Strategy','Count','Win Rate','Net P&L']], body: body, theme: 'striped' });
-            doc.save('StrategyAudit.pdf');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const stats = {};
+            DB.strats.forEach(s => { stats[s.name] = { count: 0, wins: 0, pnl: 0 }; });
+            stats['No Strategy'] = { count: 0, wins: 0, pnl: 0 }; 
+
+            DB.trades.forEach(t => {
+                const sName = t.strat || 'No Strategy';
+                if (!stats[sName]) stats[sName] = { count: 0, wins: 0, pnl: 0 };
+                stats[sName].count++;
+                stats[sName].pnl += t.pnl;
+                if (t.pnl > 0) stats[sName].wins++;
+            });
+
+            const tableBody = [];
+            Object.keys(stats).forEach(key => {
+                const s = stats[key];
+                if (s.count > 0) {
+                    const wr = ((s.wins / s.count) * 100).toFixed(1) + '%';
+                    tableBody.push([key, s.count, wr, s.pnl.toFixed(2)]);
+                }
+            });
+
+            doc.setFontSize(18);
+            doc.text("Strategy Performance Report", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Breakdown of performance by setup.", 14, 26);
+
+            doc.autoTable({
+                startY: 35,
+                head: [['Strategy Name', 'Total Trades', 'Win Rate', 'Net P&L']],
+                body: tableBody,
+                theme: 'grid',
+                headStyles: { fillColor: [59, 130, 246] }, 
+                styles: { fontSize: 10, cellPadding: 3 },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 3) {
+                        const val = parseFloat(data.cell.raw);
+                        if (val >= 0) data.cell.styles.textColor = [0, 150, 0];
+                        else data.cell.styles.textColor = [200, 0, 0];
+                    }
+                }
+            });
+
+            doc.setFontSize(8);
+            doc.setTextColor(150,0,0);
+            doc.text("Note: A high Win Rate with a negative P&L indicates that your average loss is significantly larger than your average win.", 14, doc.lastAutoTable.finalY + 10);
+
+            doc.save('strategy_performance.pdf');
         }
     </script>
 </body>
