@@ -38,11 +38,11 @@
             background-image: radial-gradient(circle at 50% 0%, var(--accent-dim) 0%, transparent 60%);
             color: var(--text-main); 
             font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
+            overflow: hidden; /* Main window doesn't scroll, inner panels do */
             transition: background 0.3s ease;
         }
 
-        /* --- MOBILE SIDEBAR ARCHITECTURE --- */
+        /* --- UNIVERSAL SIDEBAR SCROLL FIX --- */
         #main-sidebar {
             background-color: var(--card);
             border-right: 1px solid var(--border);
@@ -50,16 +50,20 @@
             flex-direction: column;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
-            overflow-y: auto; /* Internal Scroll Enabled */
+            
+            /* FORCE SCROLL ON ALL DEVICES (TABLET/PC/MOBILE) */
+            height: 100dvh; /* Dynamic Height for Mobile Browsers */
+            max-height: 100dvh;
+            overflow-y: auto; 
+            overflow-x: hidden;
             scrollbar-width: thin;
             scrollbar-color: var(--border) transparent;
         }
 
-        /* DESKTOP MODE */
+        /* DESKTOP (Regular Sidebar) */
         @media (min-width: 769px) {
             #main-sidebar {
                 width: 18rem;
-                height: 100vh;
                 position: relative;
                 transform: translateX(0) !important;
             }
@@ -68,7 +72,7 @@
             #mobile-toggle-btn { display: none !important; }
         }
 
-        /* MOBILE MODE (DRAWER) */
+        /* MOBILE & TABLET PORTRAIT (Slide-Over Drawer) */
         @media (max-width: 768px) {
             #main-sidebar {
                 position: fixed;
@@ -76,8 +80,7 @@
                 left: 0;
                 bottom: 0;
                 width: 85%;
-                max-width: 300px;
-                height: 100dvh;
+                max-width: 320px;
                 transform: translateX(-100%); /* Hidden by default */
                 box-shadow: 5px 0 25px rgba(0,0,0,0.8);
             }
@@ -85,7 +88,6 @@
                 transform: translateX(0); /* Slide In */
             }
             
-            /* BACKDROP */
             #mobile-backdrop {
                 position: fixed;
                 inset: 0;
@@ -102,11 +104,11 @@
             }
         }
 
-        /* CUSTOM SCROLLBAR */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        /* CUSTOM SCROLLBAR STYLE */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         /* THEME CLASSES */
         .btn-accent { background-color: var(--accent); color: #000; font-weight: bold; transition: 0.2s; }
@@ -119,8 +121,8 @@
 
         /* INPUTS */
         .input-dark { 
-            background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 10px; 
-            border-radius: 4px; width: 100%; outline: none; font-size: 13px; transition: 0.2s; 
+            background: #0a0a0a; border: 1px solid var(--border); color: white; padding: 12px; 
+            border-radius: 4px; width: 100%; outline: none; font-size: 14px; transition: 0.2s; 
         }
         .input-dark:focus { border-color: var(--accent); }
         
@@ -134,23 +136,23 @@
 
         /* CARDS */
         .universal-card {
-            background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px; 
             margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .card-header { background: #111; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .card-header { background: #111; padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .card-body { padding: 20px; background: #080808; color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-wrap; border-left: 2px solid #222; }
 
-        /* UTILS - MOBILE GRID FIX */
+        /* UTILS - PREMIUM GRID */
         .journal-grid { display: grid; grid-template-columns: 0.5fr 0.5fr 1fr 1fr 1fr 1fr 0.5fr 0.5fr; width: 100%; align-items: center; gap: 10px; }
         @media (max-width: 768px) {
             .journal-grid { grid-template-columns: 1fr 1fr; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
         }
 
-        .data-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 2px; }
-        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #ddd; }
+        .data-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
+        .data-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ddd; }
         
-        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; }
+        .side-toggle { display: flex; background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; height: 42px; align-items: center; }
+        .side-opt { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 12px; font-weight: bold; color: #555; transition: 0.2s; height: 100%; display: flex; align-items: center; justify-content: center; }
         .side-opt:hover { color: #ccc; }
         input[name="t-side"] { display: none; }
         input[name="t-side"]:checked + .side-opt[for="side-buy"] { background: rgba(34, 197, 94, 0.2); color: var(--buy); border-bottom: 2px solid var(--buy); }
@@ -161,13 +163,13 @@
         .cal-header-item { text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; padding: 10px 0; background: #111; border-bottom: 1px solid var(--border); }
         .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
         .cal-cell { 
-            background: var(--card); min-height: 100px; padding: 8px; position: relative; cursor: pointer; transition: 0.2s; 
+            background: var(--card); min-height: 80px; padding: 4px; position: relative; cursor: pointer; transition: 0.2s; 
             display: flex; flex-direction: column; justify-content: space-between;
         }
         .cal-cell:hover { background: #161616; }
         .cal-cell.empty { background: #0a0a0a; cursor: default; }
         .cal-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #555; font-weight: bold; }
-        .cal-pnl { font-size: 11px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
+        .cal-pnl { font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
         .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
 
         /* PFP & CHECKLIST */
@@ -229,7 +231,7 @@
                 </div>
 
                 <div class="border border-[#262626] rounded bg-[#0a0a0a] overflow-hidden">
-                    <button onclick="toggleFunds()" class="w-full p-2 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
+                    <button onclick="toggleFunds()" class="w-full p-3 text-[10px] font-bold text-gray-400 bg-[#111] hover:text-white hover:bg-[#161616] flex justify-between items-center transition">
                         <span>💰 FUNDS & CAPITAL</span>
                         <span id="funds-arrow">▼</span>
                     </button>
@@ -1027,12 +1029,12 @@
             doc.text(`Deposits: ${DB.deposit.toFixed(2)} | Withdrawals: ${DB.withdraw.toFixed(2)}`, 20, 54);
             doc.text(`Est. Net Balance: ${currentBalance.toFixed(2)}`, 140, 54);
 
-            // UPGRADED PDF COLUMNS
+            // UPGRADED PDF COLUMNS - ADDED 'Entry Price' EXPLICITLY
             const tableBody = filteredTrades.map(t => [t.date, t.asset, t.side, t.strat || '-', t.size, t.entry, t.sl, t.exit, t.pnl, t.notes]);
 
             doc.autoTable({
                 startY: 65,
-                head: [['Date', 'Asset', 'Side', 'Strat', 'Qty', 'Entry', 'SL', 'Exit', 'P&L', 'Notes']],
+                head: [['Date', 'Asset', 'Side', 'Strat', 'Qty', 'Entry Price', 'SL', 'Exit', 'P&L', 'Notes']],
                 body: tableBody,
                 theme: 'grid',
                 styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' }, 
