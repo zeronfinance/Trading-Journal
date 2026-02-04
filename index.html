@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        /* --- DYNAMIC THEME VARIABLES --- */
+        /* --- THEME VARIABLES --- */
         :root { 
             --bg: #050505; 
             --card: #0f0f0f; 
@@ -42,7 +42,7 @@
             transition: background 0.3s ease;
         }
 
-        /* --- UNIVERSAL SCROLLABLE SIDEBAR --- */
+        /* --- SIDEBAR --- */
         #main-sidebar {
             background-color: var(--card);
             border-right: 1px solid var(--border);
@@ -94,7 +94,7 @@
             #mobile-backdrop.active { opacity: 1; pointer-events: auto; }
         }
 
-        /* SCROLLBAR & UI */
+        /* UI ELEMENTS */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -102,8 +102,6 @@
 
         .btn-accent { background-color: var(--accent); color: #000; font-weight: bold; transition: 0.2s; }
         .btn-accent:hover { opacity: 0.9; transform: translateY(-1px); }
-        .text-accent { color: var(--accent); }
-        .border-accent { border-color: var(--accent); }
         .nav-item.active { background: #1a1a1a; color: white; border-left: 3px solid var(--accent); }
         .nav-item:hover { background: #111; color: white; }
         
@@ -133,23 +131,16 @@
         .cal-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
         .cal-header-item { text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; padding: 10px 0; background: #111; border-bottom: 1px solid var(--border); }
         .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        .cal-cell { 
-            background: var(--card); min-height: 80px; padding: 4px; position: relative; cursor: pointer; transition: 0.2s; 
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
+        .cal-cell { background: var(--card); min-height: 80px; padding: 4px; position: relative; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
         .cal-cell:hover { background: #161616; }
         .cal-cell.empty { background: #0a0a0a; cursor: default; }
         .cal-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #555; font-weight: bold; }
         .cal-pnl { font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; align-self: flex-end; }
         .cal-trades-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; top: 10px; right: 10px; }
         
-        /* TODAY HIGHLIGHTER */
-        .cal-cell.is-today {
-            border: 1px solid var(--accent);
-            box-shadow: inset 0 0 15px var(--accent-dim);
-        }
+        /* TODAY HIGHLIGHT */
+        .cal-cell.is-today { border: 1px solid var(--accent); box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.2); }
 
-        /* PFP & CHECKLIST */
         .pfp-box { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
         .pfp-box img { width: 100%; height: 100%; object-fit: cover; }
         .checklist-item { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--card); border: 1px solid var(--border); margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
@@ -158,20 +149,8 @@
         .checklist-item.checked .tick-box { background: var(--accent); border-color: var(--accent); color: black; font-weight: bold; }
         .hidden { display: none !important; }
         
-        /* FUNDS PANEL */
-        .funds-panel {
-            max-height: 500px;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding 0.4s ease;
-            opacity: 1;
-        }
-        .funds-panel.collapsed {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            margin: 0 !important;
-        }
+        .funds-panel { max-height: 500px; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding 0.4s ease; opacity: 1; }
+        .funds-panel.collapsed { max-height: 0; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin: 0 !important; }
     </style>
 </head>
 <body class="flex h-screen">
@@ -229,7 +208,7 @@
                 <div onclick="nav('mirror')" id="nav-mirror" class="nav-item p-3 text-sm rounded cursor-pointer mb-1 transition flex items-center gap-3">🪞 Analytics & PDF</div>
             </nav>
 
-            <button id="install-btn" onclick="handleInstallClick()" class="w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2 shrink-0 shadow-lg">
+            <button id="install-btn" onclick="handleInstallClick()" class="hidden w-full bg-[#111] hover:bg-[#222] border border-[#333] text-white py-3 rounded mb-4 text-xs font-bold tracking-widest flex items-center justify-center gap-2 shrink-0 shadow-lg">
                 📲 INSTALL APP
             </button>
 
@@ -445,82 +424,35 @@
         </div>
     </div>
 
-    <div id="install-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
-        <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] relative text-left">
-            <button onclick="document.getElementById('install-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-black rounded-lg flex items-center justify-center mx-auto mb-4 overflow-hidden border border-gray-800">
-                    <img src="logo.jpg" class="w-full h-full object-cover">
-                </div>
-                <h2 class="text-xl font-bold text-white">INSTALL APP</h2>
-                <p class="text-gray-500 text-xs mt-1">For Best Experience on iPhone/iPad</p>
-            </div>
-            
-            <div class="space-y-4 text-sm text-gray-300">
-                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">1. Tap 'Share'</strong>
-                    Tap the <span class="text-blue-400 font-bold">Share Icon</span> (Box with arrow) at the bottom or top of Safari.
-                </div>
-                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">2. Add to Home</strong>
-                    Scroll down and tap <span class="font-bold text-white">'Add to Home Screen'</span>.
-                </div>
-                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">3. Confirm</strong>
-                    Tap 'Add' in the top right corner. The app will appear on your screen.
-                </div>
-            </div>
-            
-            <button onclick="document.getElementById('install-modal').classList.add('hidden')" class="w-full btn-accent py-3 rounded font-bold text-sm mt-6 text-black">GOT IT</button>
-        </div>
-    </div>
-
-    <div id="install-modal-pc" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[300]">
-        <div class="bg-[#111] border border-accent p-8 rounded-xl w-[90%] max-w-md shadow-[0_0_50px_rgba(59,130,246,0.2)] relative text-left">
-            <button onclick="document.getElementById('install-modal-pc').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-bold text-white">INSTALL APP</h2>
-                <p class="text-gray-500 text-xs mt-1">Direct Install Not Available</p>
-            </div>
-            <div class="space-y-4 text-sm text-gray-300">
-                <div class="bg-[#1a1a1a] p-3 rounded border border-[#333]">
-                    <strong class="text-white block mb-1">How to Install Manually:</strong>
-                    Look for the <span class="font-bold text-white">Install Icon (⬇️)</span> in your browser's address bar (top right).
-                    <br><br>
-                    Or tap the <span class="font-bold text-white">3 Dots Menu</span> -> "Install App".
-                </div>
-            </div>
-            <button onclick="document.getElementById('install-modal-pc').classList.add('hidden')" class="w-full btn-accent py-3 rounded font-bold text-sm mt-6 text-black">GOT IT</button>
-        </div>
-    </div>
-
     <script>
         // --- SMART INSTALL LOGIC (ONE-TAP) ---
         let deferredPrompt;
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-        // 1. Capture event immediately on load
+        
+        // 1. CAPTURE THE INSTALL EVENT
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67+ from automatically showing the prompt
             e.preventDefault();
+            // Stash the event so it can be triggered later.
             deferredPrompt = e;
+            // SHOW THE INSTALL BUTTON NOW THAT WE KNOW IT'S POSSIBLE
+            document.getElementById('install-btn').classList.remove('hidden');
         });
 
         function handleInstallClick() {
             if (deferredPrompt) {
-                // 2. ANDROID/PC: Force System Prompt Immediately
+                // 2. TRIGGER NATIVE INSTALL PROMPT
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('User accepted the install prompt');
-                        deferredPrompt = null; // Clear prompt after use
                     }
+                    deferredPrompt = null;
+                    // Hide button after install
+                    document.getElementById('install-btn').classList.add('hidden');
                 });
-            } else if (isIos) {
-                // 3. iPHONE: Show iOS Guide
-                document.getElementById('install-modal').classList.remove('hidden');
             } else {
-                // 4. PC/ANDROID FALLBACK: Show Manual Guide (If prompt blocked/unavailable)
-                document.getElementById('install-modal-pc').classList.remove('hidden');
+                // If button is visible but prompt is gone (rare), or direct check fails
+                alert("App is already installed or check your browser menu to install.");
             }
         }
 
